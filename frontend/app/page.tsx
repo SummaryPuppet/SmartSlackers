@@ -79,6 +79,15 @@ export default function Home() {
             >
               Explorar Carreras
             </a>
+            <a
+              className="relative transition-colors hover:text-red-500 font-semibold text-red-600"
+              href="/simular"
+            >
+              Simular Carrera
+              <span className="absolute -top-2 -right-4 rounded-full bg-red-600 px-1.5 py-0.5 text-[9px] font-bold text-white leading-none">
+                NEW
+              </span>
+            </a>
             <a className="transition-colors hover:text-red-500" href="#mentor">
               Mentor IA
             </a>
