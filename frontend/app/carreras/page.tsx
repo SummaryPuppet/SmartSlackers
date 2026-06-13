@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { careers, AREAS, type Career } from "@/lib/careers";
+import Navbar from "@/components/Navbar";
 
 function getNowActivity(dayInLife: Career["dayInLife"]) {
   const h = new Date().getHours();
@@ -436,48 +437,7 @@ export default function CarrerasPage() {
 
   return (
     <main className="min-h-screen bg-[radial-gradient(circle_at_top_left,rgba(220,38,38,0.10),transparent_30%),radial-gradient(circle_at_bottom_right,rgba(244,63,94,0.08),transparent_30%),linear-gradient(180deg,#fff5f5_0%,#fef2f2_100%)]">
-      {/* Header */}
-      <div className="sticky top-0 z-30 border-b border-white/60 bg-white/70 backdrop-blur-xl">
-        <div className="mx-auto max-w-7xl px-4 py-3 sm:px-6 lg:px-8">
-          <div className="flex items-center gap-4">
-            <Link
-              href="/"
-              className="flex items-center gap-2 text-slate-600 transition hover:text-red-600"
-            >
-              <span className="text-lg">←</span>
-              <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-br from-red-600 to-rose-500 text-white text-sm font-black shadow">
-                VT
-              </div>
-            </Link>
-            <div>
-              <h1 className="text-base font-extrabold text-slate-900">Explorar Carreras</h1>
-              <p className="text-xs text-slate-500">
-                <motion.span
-                  key={count}
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                >
-                  {count}
-                </motion.span>{" "}
-                carreras · Perú
-              </p>
-            </div>
-
-            <div className="ml-auto flex-1 max-w-sm">
-              <div className="relative">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">🔍</span>
-                <input
-                  type="text"
-                  placeholder="Buscar carrera..."
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  className="w-full rounded-xl border border-red-100 bg-white py-2 pl-9 pr-4 text-sm text-slate-800 shadow-sm outline-none focus:border-red-400 focus:ring-2 focus:ring-red-100 transition"
-                />
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+      <Navbar />
 
       <div className="mx-auto max-w-7xl px-4 pt-6 pb-12 sm:px-6 lg:px-8">
         {/* Hero strip */}

@@ -1,6 +1,7 @@
 ﻿import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardTitle } from "@/components/ui/card";
+import Navbar from "@/components/Navbar";
 
 const resourceCards = [
   {
@@ -73,49 +74,7 @@ export default function ResourcesPage() {
         <div className="absolute bottom-0 left-1/2 h-96 w-96 -translate-x-1/2 rounded-full bg-orange-300/25 blur-3xl" />
       </div>
 
-      <header className="relative z-10 border-b border-white/50 bg-white/50 backdrop-blur-xl">
-        <div className="mx-auto flex w-full max-w-7xl items-center justify-between px-6 py-4 lg:px-8">
-          <div className="flex items-center gap-3">
-            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-linear-to-br from-red-600 to-rose-500 text-white shadow-lg shadow-red-500/25">
-              <span className="text-lg font-black">VT</span>
-            </div>
-            <div>
-              <p className="text-lg font-extrabold tracking-tight text-slate-950">Vocatio</p>
-              <p className="text-xs text-slate-500">Tu camino vocacional con UTP Perú</p>
-            </div>
-          </div>
-
-          <nav className="hidden items-center gap-8 text-sm font-medium text-slate-600 lg:flex">
-            <a className="transition-colors hover:text-red-500" href="/#inicio">
-              Inicio
-            </a>
-            <a className="transition-colors hover:text-red-500" href="/test">
-              Test Vocacional
-            </a>
-            <a className="transition-colors hover:text-red-500" href="/carreras">
-              Explorar Carreras
-            </a>
-            <a className="transition-colors hover:text-red-500" href="/#mentor">
-              Mentor IA
-            </a>
-            <a className="text-red-700 transition-colors hover:text-red-500" href="/recursos">
-              Recursos
-            </a>
-            <a className="transition-colors hover:text-red-500" href="/#comunidad">
-              Comunidad
-            </a>
-          </nav>
-
-          <div className="flex items-center gap-3">
-            <Button variant="outline" size="lg">
-              Iniciar sesión
-            </Button>
-            <Button size="lg" className="shadow-[0_16px_40px_rgba(220,38,38,0.28)] transition-transform hover:scale-105">
-              Registrarme
-            </Button>
-          </div>
-        </div>
-      </header>
+      <Navbar />
 
       <section className="relative z-10 mx-auto w-full max-w-7xl px-6 py-12 lg:px-8 lg:py-20">
         <div className="grid gap-12 lg:grid-cols-[1.1fr_0.9fr] items-center">

@@ -2,6 +2,7 @@
 
 import { useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import Navbar from "@/components/Navbar";
 
 // Stable star data for astronauta card
 const ASTRO_STARS = Array.from({ length: 40 }, (_, i) => ({
@@ -494,21 +495,7 @@ export default function SimularPage() {
           "radial-gradient(circle at top left,rgba(220,38,38,0.10),transparent 30%),radial-gradient(circle at bottom right,rgba(244,63,94,0.08),transparent 30%),linear-gradient(180deg,#fff5f5 0%,#fef2f2 100%)",
       }}
     >
-      {/* Top nav */}
-      <div className="sticky top-0 z-30 border-b border-white/60 bg-white/70 backdrop-blur-xl">
-        <div className="mx-auto flex max-w-4xl items-center gap-4 px-4 py-3">
-          <a href="/" className="flex items-center gap-2 text-slate-600 transition hover:text-red-600">
-            <span className="text-lg">←</span>
-            <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-br from-red-600 to-rose-500 text-white text-sm font-black shadow">
-              VT
-            </div>
-          </a>
-          <div className="flex-1">
-            <h1 className="text-sm font-extrabold text-slate-900">Simular Carrera</h1>
-            <p className="text-xs text-slate-500">Desliza y elige tu carrera</p>
-          </div>
-        </div>
-      </div>
+      <Navbar />
 
       {/* Hero */}
       <div className="text-center px-4 pt-8 pb-6 max-w-2xl mx-auto">

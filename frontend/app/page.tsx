@@ -5,8 +5,8 @@ import { doc, getDoc } from "firebase/firestore";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { auth, db } from "../src/firebase/config";
-import { logout } from "../src/services/authService";
 
+import Navbar from "@/components/Navbar";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -17,7 +17,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { usePathname } from "next/navigation";
 
 const highlights = [
   { title: "+2,500", description: "estudiantes acompañados" },
@@ -75,108 +74,15 @@ export default function Home() {
 
     return () => unsubscribe();
   }, [router]);
-  const pathname = usePathname();
-  const isHome = pathname === "/";
-
   return (
     <main className="relative min-h-screen overflow-hidden bg-[radial-gradient(circle_at_top_left,rgba(220,38,38,0.14),transparent_28%),radial-gradient(circle_at_top_right,rgba(244,63,94,0.12),transparent_24%),linear-gradient(180deg,#fff5f5_0%,#fef2f2_100%)] text-slate-900">
+      <Navbar />
+
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
         <div className="absolute -left-32 top-24 h-80 w-80 rounded-full bg-red-300/30 blur-3xl animate-drift-slow" />
         <div className="absolute -right-24 top-20 h-96 w-96 rounded-full bg-rose-300/30 blur-3xl animate-drift-slow animate-delay-300" />
         <div className="absolute -bottom-32 left-1/2 h-96 w-96 -translate-x-1/2 rounded-full bg-orange-300/25 blur-3xl animate-float-soft" />
       </div>
-
-      <header className="relative z-10 border-b border-white/50 bg-white/50 backdrop-blur-xl animate-fade-up">
-        <div className="mx-auto flex w-full max-w-7xl items-center justify-between px-6 py-4 lg:px-8">
-          <div className="flex items-center gap-3">
-            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-linear-to-br from-red-600 to-rose-500 text-white shadow-lg shadow-red-500/25 animate-bounce-in">
-              <span className="text-lg font-black">VT</span>
-            </div>
-            <div className="animate-slide-in-left animate-delay-100">
-              <p className="text-lg font-extrabold tracking-tight text-slate-950">
-                Vocatio
-              </p>
-              <p className="text-xs text-slate-500">Tu camino, tu futuro. </p>
-            </div>
-          </div>
-
-          <nav className="hidden items-center gap-8 text-sm font-medium text-slate-600 lg:flex">
-            <a
-              className="text-red-700 transition-colors hover:text-red-500"
-              href={isHome ? "#inicio" : "/#inicio"}
-              onClick={(e) => {
-                if (isHome) {
-                  e.preventDefault();
-                  document
-                    .getElementById("inicio")
-                    ?.scrollIntoView({ behavior: "smooth" });
-                }
-              }}
-            >
-              Inicio
-            </a>
-            <a className="transition-colors hover:text-red-500" href="test">
-              Test Vocacional
-            </a>
-            <a
-              className="transition-colors hover:text-red-500"
-              href="/carreras"
-            >
-              Explorar Carreras
-            </a>
-            <a
-              className="relative transition-colors hover:text-red-500 font-semibold text-red-600"
-              href="/simular"
-            >
-              Simular Carrera
-              <span className="absolute -top-2 -right-4 rounded-full bg-red-600 px-1.5 py-0.5 text-[9px] font-bold text-white leading-none">
-                NEW
-              </span>
-            </a>
-            <a className="transition-colors hover:text-red-500" href="/mentor">
-              Mentor IA
-            </a>
-            <a
-              className="transition-colors hover:text-red-500"
-              href="/recursos"
-            >
-              Recursos
-            </a>
-            <a
-              className="transition-colors hover:text-red-500"
-              href="#comunidad"
-            >
-              Comunidad
-            </a>
-          </nav>
-
-          <div className="flex items-center gap-4 animate-slide-in-right animate-delay-200">
-            <div className="hidden md:flex flex-col text-right">
-              <span className="text-sm font-semibold text-slate-900">
-                Bienvenido, {userName}
-              </span>
-
-              <span className="text-xs text-slate-500">{userEmail}</span>
-            </div>
-
-            <Avatar>
-              <AvatarFallback className="bg-red-600 text-white">
-                {userName?.charAt(0).toUpperCase()}
-              </AvatarFallback>
-            </Avatar>
-
-            <Button
-              variant="outline"
-              onClick={async () => {
-                await logout();
-                router.push("/login");
-              }}
-            >
-              Cerrar sesión
-            </Button>
-          </div>
-        </div>
-      </header>
 
       <section
         id="inicio"

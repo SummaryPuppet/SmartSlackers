@@ -4,6 +4,7 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { careers, type Career } from "@/lib/careers";
+import Navbar from "@/components/Navbar";
 
 type Message = {
   role: "user" | "assistant";
@@ -137,30 +138,7 @@ function CareerSelector({
 
   return (
     <div className="min-h-screen bg-[radial-gradient(circle_at_top_left,rgba(220,38,38,0.10),transparent_30%),radial-gradient(circle_at_bottom_right,rgba(244,63,94,0.08),transparent_30%),linear-gradient(180deg,#fff5f5_0%,#fef2f2_100%)]">
-      {/* Header */}
-      <div className="sticky top-0 z-30 border-b border-white/60 bg-white/70 backdrop-blur-xl">
-        <div className="mx-auto max-w-7xl px-4 py-3 sm:px-6 lg:px-8">
-          <div className="flex items-center gap-4">
-            <Link
-              href="/"
-              className="flex items-center gap-2 text-slate-600 transition hover:text-red-600"
-            >
-              <span className="text-lg">←</span>
-              <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-br from-red-600 to-rose-500 text-white text-sm font-black shadow">
-                VT
-              </div>
-            </Link>
-            <div>
-              <h1 className="text-base font-extrabold text-slate-900">
-                Mentor IA
-              </h1>
-              <p className="text-xs text-slate-500">
-                Elige tu carrera para empezar
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
+      <Navbar />
 
       <div className="mx-auto max-w-4xl px-4 pt-8 pb-16 sm:px-6 lg:px-8">
         {/* Hero */}
