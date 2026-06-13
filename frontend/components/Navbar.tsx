@@ -13,6 +13,7 @@ const NAV_LINKS = [
   { label: "Test Vocacional", href: "/test" },
   { label: "Explorar Carreras", href: "/carreras" },
   { label: "Simular Carrera", href: "/simular", badge: "NEW" },
+  { label: "Comunidad", href: "/comunidad" },
   { label: "Laboratorios", href: "/laboratorios" },
   { label: "Mentor IA", href: "/mentor" },
   { label: "Recursos", href: "/recursos" },
