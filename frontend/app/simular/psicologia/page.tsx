@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import Navbar from "@/components/Navbar";
 
 type GamePhase = "briefing" | "emotion" | "technique" | "response" | "crisis" | "result";
 const PHASE_ORDER: GamePhase[] = ["briefing", "emotion", "technique", "response", "crisis", "result"];
@@ -420,13 +421,7 @@ export default function PsicologiaGame() {
             transition={{ duration: p.dur, repeat: Infinity, delay: p.delay }} />
         ))}
       </div>
-      <div className="sticky top-0 z-50 px-4 py-3" style={{ background: "rgba(30,11,64,0.92)", backdropFilter: "blur(12px)" }}>
-        <div className="max-w-lg mx-auto flex items-center gap-3">
-          <a href="/simular" className="text-white/50 hover:text-white transition text-lg">←</a>
-          <span className="text-white font-bold flex-1">🧠 Psicología — Consulta Clínica</span>
-          <ScoreBar phase={phase} scores={scores} />
-        </div>
-      </div>
+      <Navbar variant="dark" title="🧠 Psicología — Consulta Clínica" backHref="/simular" rightSlot={<ScoreBar phase={phase} scores={scores} />} />
       <div className="relative max-w-lg mx-auto py-8">
         <AnimatePresence mode="wait">
           {phase === "briefing" && (

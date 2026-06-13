@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import Navbar from "@/components/Navbar";
 
 // ─── Types ────────────────────────────────────────────────
 type GamePhase = "briefing" | "launch" | "dodge" | "landing" | "moonwalk" | "result";
@@ -1087,21 +1088,14 @@ export default function AstronautaPage() {
     >
       <Stars />
 
-      {/* Nav */}
-      <div className="relative z-10 flex items-center justify-between px-4 py-3 border-b border-white/10">
-        <a href="/simular" className="flex items-center gap-2 text-white/70 hover:text-white transition text-sm">
-          <span>←</span> Simular carrera
-        </a>
-        <div className="text-center">
-          <p className="text-white/90 text-xs font-bold tracking-widest uppercase">{title[phase]}</p>
-          {phase !== "briefing" && phase !== "result" && (
-            <div className="mt-1 w-40 mx-auto">
-              <ScoreBar phase={phase} scores={scores} />
-            </div>
-          )}
-        </div>
-        <div className="text-white/50 text-sm">🚀 Astronauta</div>
-      </div>
+      <Navbar
+        variant="dark"
+        title={`🚀 Astronauta — ${title[phase]}`}
+        backHref="/simular"
+        rightSlot={phase !== "briefing" && phase !== "result"
+          ? <ScoreBar phase={phase} scores={scores} />
+          : undefined}
+      />
 
       {/* Phase content */}
       <div className="relative z-10 max-w-2xl mx-auto pt-6">

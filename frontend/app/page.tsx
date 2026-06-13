@@ -2,6 +2,14 @@
 
 import Navbar from "./components/Navbar";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
+import { onAuthStateChanged } from "firebase/auth";
+import { doc, getDoc } from "firebase/firestore";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { auth, db } from "../src/firebase/config";
+
+import Navbar from "@/components/Navbar";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -43,15 +51,40 @@ const features = [
 ];
 
 export default function Home() {
+  const router = useRouter();
+  const [userEmail, setUserEmail] = useState("");
+  const [userName, setUserName] = useState("");
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      if (!user) {
+        router.push("/login");
+        return;
+      }
+
+      setUserEmail(user.email || "");
+
+      const docRef = doc(db, "Usuarios", user.uid);
+      const docSnap = await getDoc(docRef);
+
+      if (docSnap.exists()) {
+        const data = docSnap.data();
+
+        setUserName(data.nombre || "");
+      }
+    });
+
+    return () => unsubscribe();
+  }, [router]);
   return (
     <main className="relative min-h-screen overflow-hidden bg-[radial-gradient(circle_at_top_left,rgba(220,38,38,0.14),transparent_28%),radial-gradient(circle_at_top_right,rgba(244,63,94,0.12),transparent_24%),linear-gradient(180deg,#fff5f5_0%,#fef2f2_100%)] text-slate-900">
+      <Navbar />
+
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
         <div className="absolute -left-32 top-24 h-80 w-80 rounded-full bg-red-300/30 blur-3xl animate-drift-slow" />
         <div className="absolute -right-24 top-20 h-96 w-96 rounded-full bg-rose-300/30 blur-3xl animate-drift-slow animate-delay-300" />
         <div className="absolute -bottom-32 left-1/2 h-96 w-96 -translate-x-1/2 rounded-full bg-orange-300/25 blur-3xl animate-float-soft" />
       </div>
-
-      <Navbar />
 
       <section
         id="inicio"
@@ -83,7 +116,7 @@ export default function Home() {
               <Button
                 size="lg"
                 className="bg-linear-to-r from-red-600 via-rose-600 to-orange-500 shadow-[0_18px_45px_rgba(220,38,38,0.35)] transition-all hover:brightness-110 hover:scale-105"
-                onClick={() => window.location.href = "/test"}
+                onClick={() => (window.location.href = "/test")}
               >
                 Comenzar mi viaje
               </Button>

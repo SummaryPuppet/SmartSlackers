@@ -27,6 +27,7 @@ import ReactFlow, {
   type NodeTypes,
 } from "reactflow";
 import "reactflow/dist/style.css";
+import Navbar from "@/components/Navbar";
 
 const API_BASE = "http://127.0.0.1:8000";
 
@@ -359,45 +360,7 @@ function RoadmapPageInner() {
         <div className="absolute -right-24 top-20 h-96 w-96 rounded-full bg-rose-300/30 blur-3xl" />
       </div>
 
-      {/* Header */}
-      <header className="relative z-10 border-b border-white/50 bg-white/50 backdrop-blur-xl flex items-center justify-between px-8 py-4">
-        <div className="flex items-center gap-3">
-          <div
-            className="flex h-11 w-11 items-center justify-center rounded-2xl text-white shadow-lg text-lg font-black"
-            style={{ background: `linear-gradient(135deg, ${career.color}, ${career.color}aa)` }}
-          >
-            {career.emoji}
-          </div>
-          <div>
-            <h1 className="text-lg font-extrabold tracking-tight text-slate-950 m-0">
-              Roadmap: {career.title}
-            </h1>
-            <p className="text-xs text-slate-500 m-0">
-              {career.area} · {career.match}% compatibilidad
-              {scrapedData && (
-                <span className="ml-2 text-green-500 font-semibold">
-                  ● Datos reales UTP
-                </span>
-              )}
-            </p>
-          </div>
-        </div>
-
-        <div className="flex gap-3">
-          <button
-            onClick={() => router.push("/test")}
-            className="px-5 py-2.5 bg-transparent border border-slate-200 rounded-xl text-sm font-semibold text-slate-600 cursor-pointer transition-all hover:bg-white/80"
-          >
-            ← Volver al test
-          </button>
-          <button
-            onClick={() => router.push("/")}
-            className="px-5 py-2.5 bg-linear-to-r from-red-600 via-rose-600 to-orange-500 border-none rounded-xl text-sm font-semibold text-white cursor-pointer shadow-[0_4px_20px_rgba(220,38,38,0.25)] transition-all hover:brightness-110"
-          >
-            Inicio
-          </button>
-        </div>
-      </header>
+      <Navbar backHref="/test" />
 
       {/* Info bar */}
       <div className="relative z-10 flex items-center gap-6 px-8 py-3.5 border-b border-white/30 bg-white/40 backdrop-blur-sm flex-wrap">

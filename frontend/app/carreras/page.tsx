@@ -1,15 +1,22 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import Link from "next/link";
-import { motion, AnimatePresence } from "framer-motion";
-import { careers, AREAS, type Career } from "@/lib/careers";
+import Navbar from "@/components/Navbar";
+import { AREAS, careers as staticCareers, type Career } from "@/lib/careers";
+import { AnimatePresence, motion } from "framer-motion";
+import { useEffect, useState } from "react";
+
+const API_BASE =
+  process.env.NEXT_PUBLIC_MENTOR_API_URL || "http://127.0.0.1:8000";
 
 function getNowActivity(dayInLife: Career["dayInLife"]) {
   const h = new Date().getHours();
   const minutes = h * 60 + new Date().getMinutes();
   const parsed = dayInLife.map((a) => {
-    const [hh, mm] = a.time.replace(" am", "").replace(" pm", "").split(":").map(Number);
+    const [hh, mm] = a.time
+      .replace(" am", "")
+      .replace(" pm", "")
+      .split(":")
+      .map(Number);
     const isPm = a.time.includes("pm") && hh !== 12;
     return { ...a, totalMin: (hh + (isPm ? 12 : 0)) * 60 + mm };
   });
@@ -49,7 +56,8 @@ function CareerScene({ career }: { career: Career }) {
             left: `${10 + i * 18}%`,
             top: i % 2 === 0 ? "20%" : "45%",
             opacity: i === 0 ? 1 : 0.65,
-            filter: i === 0 ? "drop-shadow(0 8px 16px rgba(0,0,0,0.15))" : "none",
+            filter:
+              i === 0 ? "drop-shadow(0 8px 16px rgba(0,0,0,0.15))" : "none",
           }}
         >
           {item}
@@ -158,7 +166,9 @@ function SimulatorPanel({
             {career.emoji}
           </div>
           <div>
-            <h2 className="text-xl font-black text-slate-900">{career.title}</h2>
+            <h2 className="text-xl font-black text-slate-900">
+              {career.title}
+            </h2>
             <div className="flex items-center gap-2 mt-1">
               <span
                 className="rounded-full px-2 py-0.5 text-xs font-medium"
@@ -173,7 +183,9 @@ function SimulatorPanel({
 
         <CareerScene career={career} />
 
-        <p className="mt-4 text-sm leading-relaxed text-slate-600">{career.description}</p>
+        <p className="mt-4 text-sm leading-relaxed text-slate-600">
+          {career.description}
+        </p>
       </div>
 
       {/* Now doing */}
@@ -190,10 +202,15 @@ function SimulatorPanel({
         <div className="flex items-start gap-3">
           <span className="text-2xl">{nowActivity.emoji}</span>
           <div>
-            <p className="text-xs font-semibold uppercase tracking-wide" style={{ color: career.color }}>
+            <p
+              className="text-xs font-semibold uppercase tracking-wide"
+              style={{ color: career.color }}
+            >
               En este momento serías...
             </p>
-            <p className="mt-0.5 text-sm font-medium text-slate-800">{career.nowDoing}</p>
+            <p className="mt-0.5 text-sm font-medium text-slate-800">
+              {career.nowDoing}
+            </p>
             <p className="mt-0.5 text-xs text-slate-500">
               {nowActivity.time} — {nowActivity.activity}
             </p>
@@ -226,7 +243,10 @@ function SimulatorPanel({
       </div>
 
       {/* Tab content */}
-      <div className="flex-1 overflow-y-auto px-6 py-4" style={{ maxHeight: 320 }}>
+      <div
+        className="flex-1 overflow-y-auto px-6 py-4"
+        style={{ maxHeight: 320 }}
+      >
         <AnimatePresence mode="wait">
           {activeTab === "dia" && (
             <motion.div
@@ -244,14 +264,22 @@ function SimulatorPanel({
                   transition={{ delay: i * 0.06 }}
                   className="flex items-center gap-3 rounded-xl p-3"
                   style={{
-                    background: item.time === nowActivity.time ? career.color + "12" : "#f8fafc",
-                    border: item.time === nowActivity.time ? `1px solid ${career.color}30` : "1px solid transparent",
+                    background:
+                      item.time === nowActivity.time
+                        ? career.color + "12"
+                        : "#f8fafc",
+                    border:
+                      item.time === nowActivity.time
+                        ? `1px solid ${career.color}30`
+                        : "1px solid transparent",
                   }}
                 >
                   <span className="text-lg">{item.emoji}</span>
                   <div className="flex-1 min-w-0">
                     <p className="text-xs text-slate-500">{item.time}</p>
-                    <p className="text-sm font-medium text-slate-800 truncate">{item.activity}</p>
+                    <p className="text-sm font-medium text-slate-800 truncate">
+                      {item.activity}
+                    </p>
                   </div>
                   {item.time === nowActivity.time && (
                     <span
@@ -275,24 +303,37 @@ function SimulatorPanel({
               className="space-y-5"
             >
               <div>
-                <p className="text-xs font-semibold uppercase tracking-wide text-slate-500 mb-2">Salario en Perú</p>
-                <p className="text-2xl font-black text-slate-900 mb-2">{career.salary}</p>
+                <p className="text-xs font-semibold uppercase tracking-wide text-slate-500 mb-2">
+                  Salario en Perú
+                </p>
+                <p className="text-2xl font-black text-slate-900 mb-2">
+                  {career.salary}
+                </p>
                 <SalaryBar min={career.salaryMin} max={career.salaryMin * 3} />
               </div>
 
               <div>
-                <p className="text-xs font-semibold uppercase tracking-wide text-slate-500 mb-2">Duración</p>
-                <p className="text-lg font-bold text-slate-800">{career.duration}</p>
+                <p className="text-xs font-semibold uppercase tracking-wide text-slate-500 mb-2">
+                  Duración
+                </p>
+                <p className="text-lg font-bold text-slate-800">
+                  {career.duration}
+                </p>
               </div>
 
               <div>
-                <p className="text-xs font-semibold uppercase tracking-wide text-slate-500 mb-2">Herramientas clave</p>
+                <p className="text-xs font-semibold uppercase tracking-wide text-slate-500 mb-2">
+                  Herramientas clave
+                </p>
                 <div className="flex flex-wrap gap-2">
                   {career.tools.map((tool) => (
                     <span
                       key={tool}
                       className="rounded-lg px-3 py-1 text-xs font-medium"
-                      style={{ background: career.color + "12", color: career.color }}
+                      style={{
+                        background: career.color + "12",
+                        color: career.color,
+                      }}
                     >
                       {tool}
                     </span>
@@ -301,7 +342,9 @@ function SimulatorPanel({
               </div>
 
               <div>
-                <p className="text-xs font-semibold uppercase tracking-wide text-slate-500 mb-2">Habilidades clave</p>
+                <p className="text-xs font-semibold uppercase tracking-wide text-slate-500 mb-2">
+                  Habilidades clave
+                </p>
                 <div className="flex flex-wrap gap-2">
                   {career.skills.map((skill) => (
                     <span
@@ -315,7 +358,6 @@ function SimulatorPanel({
               </div>
             </motion.div>
           )}
-
         </AnimatePresence>
       </div>
 
@@ -386,7 +428,9 @@ function CareerCard({
           </h3>
           <p className="mt-0.5 text-xs text-slate-500">{career.area}</p>
           <div className="mt-2 flex items-center gap-2">
-            <span className="text-xs font-semibold text-red-700">{career.salary}</span>
+            <span className="text-xs font-semibold text-red-700">
+              {career.salary}
+            </span>
           </div>
         </div>
       </div>
@@ -414,19 +458,40 @@ export default function CarrerasPage() {
   const [area, setArea] = useState("Todos");
   const [selected, setSelected] = useState<Career | null>(null);
   const [count, setCount] = useState(0);
+  const [careersList, setCareersList] = useState<Career[]>(staticCareers);
+
+  // Fetch careers from backend API (Firestore-backed)
+  useEffect(() => {
+    const fetchCareers = async () => {
+      try {
+        const res = await fetch(`${API_BASE}/api/v2/careers`);
+        if (!res.ok) throw new Error("API error");
+        const data = await res.json();
+        if (data.careers && data.careers.length > 0) {
+          setCareersList(data.careers);
+        }
+      } catch {
+        // Keep static fallback data
+      }
+    };
+    fetchCareers();
+  }, []);
 
   // animated counter
   useEffect(() => {
     let i = 0;
     const interval = setInterval(() => {
       i += 3;
-      if (i >= careers.length) { setCount(careers.length); clearInterval(interval); }
-      else setCount(i);
+      if (i >= careersList.length) {
+        setCount(careersList.length);
+        clearInterval(interval);
+      } else setCount(i);
     }, 30);
     return () => clearInterval(interval);
-  }, []);
+  }, [careersList.length]);
 
-  const filtered = careers.filter((c) => {
+  const filtered = careersList.filter((c) => {
+    if (!c.title || !c.area) return false;
     const matchArea = area === "Todos" || c.area === area;
     const matchSearch =
       c.title.toLowerCase().includes(search.toLowerCase()) ||
@@ -436,48 +501,7 @@ export default function CarrerasPage() {
 
   return (
     <main className="min-h-screen bg-[radial-gradient(circle_at_top_left,rgba(220,38,38,0.10),transparent_30%),radial-gradient(circle_at_bottom_right,rgba(244,63,94,0.08),transparent_30%),linear-gradient(180deg,#fff5f5_0%,#fef2f2_100%)]">
-      {/* Header */}
-      <div className="sticky top-0 z-30 border-b border-white/60 bg-white/70 backdrop-blur-xl">
-        <div className="mx-auto max-w-7xl px-4 py-3 sm:px-6 lg:px-8">
-          <div className="flex items-center gap-4">
-            <Link
-              href="/"
-              className="flex items-center gap-2 text-slate-600 transition hover:text-red-600"
-            >
-              <span className="text-lg">←</span>
-              <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-br from-red-600 to-rose-500 text-white text-sm font-black shadow">
-                VT
-              </div>
-            </Link>
-            <div>
-              <h1 className="text-base font-extrabold text-slate-900">Explorar Carreras</h1>
-              <p className="text-xs text-slate-500">
-                <motion.span
-                  key={count}
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                >
-                  {count}
-                </motion.span>{" "}
-                carreras · Perú
-              </p>
-            </div>
-
-            <div className="ml-auto flex-1 max-w-sm">
-              <div className="relative">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">🔍</span>
-                <input
-                  type="text"
-                  placeholder="Buscar carrera..."
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  className="w-full rounded-xl border border-red-100 bg-white py-2 pl-9 pr-4 text-sm text-slate-800 shadow-sm outline-none focus:border-red-400 focus:ring-2 focus:ring-red-100 transition"
-                />
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+      <Navbar />
 
       <div className="mx-auto max-w-7xl px-4 pt-6 pb-12 sm:px-6 lg:px-8">
         {/* Hero strip */}
@@ -493,16 +517,20 @@ export default function CarrerasPage() {
                 Simulador de Carreras 🔭
               </h2>
               <p className="mt-1 text-red-100 text-sm sm:text-base">
-                Haz clic en cualquier carrera para ver cómo sería tu vida profesional hoy mismo.
+                Haz clic en cualquier carrera para ver cómo sería tu vida
+                profesional hoy mismo.
               </p>
             </div>
             <div className="flex gap-4 text-center">
               {[
-                { n: careers.length + "+", label: "Carreras" },
+                { n: careersList.length + "+", label: "Carreras" },
                 { n: "Real", label: "Salarios reales" },
                 { n: "Live", label: "Sim. en tiempo real" },
               ].map((s) => (
-                <div key={s.label} className="rounded-2xl bg-white/15 px-4 py-2 backdrop-blur-sm">
+                <div
+                  key={s.label}
+                  className="rounded-2xl bg-white/15 px-4 py-2 backdrop-blur-sm"
+                >
                   <p className="text-lg font-black">{s.n}</p>
                   <p className="text-[10px] text-red-100">{s.label}</p>
                 </div>
@@ -539,13 +567,17 @@ export default function CarrerasPage() {
         </div>
 
         {/* Main layout */}
-        <div className={`grid gap-6 ${selected ? "lg:grid-cols-[1fr_420px]" : "grid-cols-1"}`}>
+        <div
+          className={`grid gap-6 ${selected ? "lg:grid-cols-[1fr_420px]" : "grid-cols-1"}`}
+        >
           {/* Career grid */}
           <div>
             {filtered.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-20 text-slate-400">
                 <span className="text-5xl mb-3">🔍</span>
-                <p className="text-lg font-semibold">No encontramos esa carrera</p>
+                <p className="text-lg font-semibold">
+                  No encontramos esa carrera
+                </p>
                 <p className="text-sm mt-1">Intenta con otro término</p>
               </div>
             ) : (
@@ -567,7 +599,9 @@ export default function CarrerasPage() {
                         career={career}
                         selected={selected?.id === career.id}
                         onClick={() =>
-                          setSelected(selected?.id === career.id ? null : career)
+                          setSelected(
+                            selected?.id === career.id ? null : career,
+                          )
                         }
                       />
                     </motion.div>

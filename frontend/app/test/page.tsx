@@ -3,6 +3,7 @@ import { useTestLogic } from "../components/test/useTestLogic";
 import TestIntro from "../components/test/TestIntro";
 import QuestionCard from "../components/test/QuestionCard";
 import ResultScreen from "../components/test/ResultScreen";
+import Navbar from "@/components/Navbar";
 
 export default function TestPage() {
   const logic = useTestLogic();
@@ -11,9 +12,9 @@ export default function TestPage() {
     <main style={{
       minHeight: "100vh",
       background: "radial-gradient(circle at top, #fff2f2 0%, #fff6f5 45%, #faf5f5 100%)",
-      display: "flex", alignItems: "center", justifyContent: "center",
-      padding: "1rem"
     }}>
+      <Navbar />
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "center", padding: "1rem", minHeight: "calc(100vh - 57px)" }}>
       {logic.phase === "intro" && (
         <TestIntro onStart={logic.startTest} />
       )}
@@ -31,6 +32,7 @@ export default function TestPage() {
       {logic.phase === "result" && (
         <ResultScreen result={logic.getResult()} score={logic.score} />
       )}
+      </div>
     </main>
   );
 }
