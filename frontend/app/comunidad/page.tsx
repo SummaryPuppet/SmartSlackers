@@ -1,12 +1,12 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { onAuthStateChanged } from "firebase/auth";
 import {
-  collection, addDoc, getDocs, query, where, orderBy, limit,
+  collection, addDoc, getDocs, query, where, orderBy, limit, startAfter,
   serverTimestamp, updateDoc, doc, arrayUnion, arrayRemove,
-  increment, Timestamp, getDoc, deleteDoc,
+  increment, Timestamp, getDoc, deleteDoc, QueryDocumentSnapshot,
 } from "firebase/firestore";
 import { auth, db } from "@/src/firebase/config";
 import Navbar from "@/components/Navbar";
@@ -89,9 +89,10 @@ function Avatar({ name, size = 40 }: { name: string; size?: number }) {
 // ── Comment Section ───────────────────────────────────────────────────────────
 
 function CommentSection({
-  postId, initialCount, currentUserId, currentUserName, onCountChange,
+  postId, postOwnerId, initialCount, currentUserId, currentUserName, onCountChange,
 }: {
   postId: string;
+  postOwnerId: string;
   initialCount: number;
   currentUserId: string;
   currentUserName: string;
@@ -141,11 +142,36 @@ function CommentSection({
         createdAt: serverTimestamp(),
       });
       await updateDoc(doc(db, "Posts", postId), { commentCount: increment(1) });
+      // Notify post owner (skip if commenter is the owner)
+      if (postOwnerId && postOwnerId !== currentUserId) {
+        try {
+          await addDoc(collection(db, "Notificaciones", postOwnerId, "items"), {
+            commenterName: currentUserName,
+            commentText: text.trim().slice(0, 100),
+            postId,
+            read: false,
+            createdAt: serverTimestamp(),
+          });
+        } catch {
+          // Non-critical — notification failure shouldn't block the comment
+        }
+      }
       setComments((p) => [...p, { id: ref.id, userId: currentUserId, userName: currentUserName, text: text.trim(), createdAt: new Date() }]);
       onCountChange(comments.length + 1);
       setText("");
     } finally {
       setSending(false);
+    }
+  };
+
+  const deleteComment = async (commentId: string) => {
+    try {
+      await deleteDoc(doc(db, "Posts", postId, "Comentarios", commentId));
+      await updateDoc(doc(db, "Posts", postId), { commentCount: increment(-1) });
+      setComments((p) => p.filter((c) => c.id !== commentId));
+      onCountChange(Math.max(0, comments.length - 1));
+    } catch {
+      // graceful
     }
   };
 
@@ -181,18 +207,37 @@ function CommentSection({
               ) : comments.length === 0 ? (
                 <p className="text-xs text-slate-400 text-center py-2">Sé el primero en comentar ✨</p>
               ) : (
-                comments.map((c) => (
-                  <motion.div key={c.id} initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }} className="flex gap-2.5">
+                <AnimatePresence initial={false}>
+                {comments.map((c) => (
+                  <motion.div
+                    key={c.id}
+                    initial={{ opacity: 0, x: -8 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -8, transition: { duration: 0.15 } }}
+                    className="flex gap-2.5 group"
+                  >
                     <Avatar name={c.userName} size={28} />
                     <div className="flex-1 min-w-0">
-                      <div className="bg-slate-50 rounded-2xl rounded-tl-sm px-3 py-2">
+                      <div className="relative bg-slate-50 rounded-2xl rounded-tl-sm px-3 py-2">
                         <span className="text-xs font-bold text-slate-800 mr-1.5">{c.userName}</span>
                         <span className="text-sm text-slate-700 break-words">{c.text}</span>
+                        {c.userId === currentUserId && (
+                          <button
+                            onClick={() => deleteComment(c.id)}
+                            title="Eliminar comentario"
+                            className="absolute -top-1.5 -right-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-white border border-slate-200 text-slate-300 shadow-sm transition-all hover:text-red-500 hover:border-red-200 opacity-0 group-hover:opacity-100"
+                          >
+                            <svg className="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                          </button>
+                        )}
                       </div>
                       <p className="text-[10px] text-slate-400 mt-0.5 ml-2">{timeAgo(c.createdAt)}</p>
                     </div>
                   </motion.div>
-                ))
+                ))}
+                </AnimatePresence>
               )}
 
               {currentUserId ? (
@@ -371,6 +416,7 @@ function PostCard({
 
         <CommentSection
           postId={post.id}
+          postOwnerId={post.userId}
           initialCount={post.commentCount ?? 0}
           currentUserId={currentUserId}
           currentUserName={currentUserName}
@@ -484,12 +530,23 @@ function PostComposer({
 
 // ── Main Page ─────────────────────────────────────────────────────────────────
 
+const PAGE_SIZE = 12;
+
 export default function ComunidadPage() {
   const [activeCareer, setActiveCareer]       = useState("general");
   const [posts, setPosts]                     = useState<Post[]>([]);
   const [loading, setLoading]                 = useState(true);
+  const [loadingMore, setLoadingMore]         = useState(false);
+  const [hasMore, setHasMore]                 = useState(true);
   const [currentUserId, setCurrentUserId]     = useState("");
   const [currentUserName, setCurrentUserName] = useState("");
+
+  // Refs to avoid stale closures in IntersectionObserver
+  const lastDocRef     = useRef<QueryDocumentSnapshot | null>(null);
+  const loadingRef     = useRef(true);
+  const loadingMoreRef = useRef(false);
+  const hasMoreRef     = useRef(true);
+  const loaderRef      = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     return onAuthStateChanged(auth, async (user) => {
@@ -508,24 +565,46 @@ export default function ComunidadPage() {
     });
   }, []);
 
-  const loadPosts = useCallback(async (career: string) => {
-    setLoading(true);
+  const loadPosts = useCallback(async (
+    career: string,
+    cursor: QueryDocumentSnapshot | null = null,
+  ) => {
+    const append = cursor !== null;
+    if (append) { setLoadingMore(true); loadingMoreRef.current = true; }
+    else         { setLoading(true);    loadingRef.current = true; }
+
     try {
       const col = collection(db, "Posts");
-      let snap;
-      try {
-        const q = career === "general"
-          ? query(col, orderBy("createdAt", "desc"), limit(60))
-          : query(col, where("career", "==", career), orderBy("createdAt", "desc"), limit(60));
-        snap = await getDocs(q);
-      } catch {
-        const q = career === "general"
-          ? query(col, limit(60))
-          : query(col, where("career", "==", career), limit(60));
-        snap = await getDocs(q);
-      }
 
-      const list: Post[] = snap.docs.map((d) => {
+      // Build query with or without orderBy (fallback if composite index is missing)
+      const makeQ = (withOrder: boolean) => {
+        if (career === "general") {
+          if (withOrder) return cursor
+            ? query(col, orderBy("createdAt", "desc"), startAfter(cursor), limit(PAGE_SIZE))
+            : query(col, orderBy("createdAt", "desc"), limit(PAGE_SIZE));
+          return cursor
+            ? query(col, startAfter(cursor), limit(PAGE_SIZE))
+            : query(col, limit(PAGE_SIZE));
+        }
+        if (withOrder) return cursor
+          ? query(col, where("career", "==", career), orderBy("createdAt", "desc"), startAfter(cursor), limit(PAGE_SIZE))
+          : query(col, where("career", "==", career), orderBy("createdAt", "desc"), limit(PAGE_SIZE));
+        return cursor
+          ? query(col, where("career", "==", career), startAfter(cursor), limit(PAGE_SIZE))
+          : query(col, where("career", "==", career), limit(PAGE_SIZE));
+      };
+
+      let snap;
+      try { snap = await getDocs(makeQ(true)); }
+      catch { snap = await getDocs(makeQ(false)); }
+
+      const newDocs = snap.docs;
+      lastDocRef.current = newDocs[newDocs.length - 1] ?? null;
+      const more = newDocs.length === PAGE_SIZE;
+      setHasMore(more);
+      hasMoreRef.current = more;
+
+      const list: Post[] = newDocs.map((d) => {
         const data = d.data();
         return {
           id: d.id,
@@ -539,14 +618,41 @@ export default function ComunidadPage() {
           commentCount: data.commentCount ?? 0,
         };
       });
-      list.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
-      setPosts(list);
+
+      if (!append) list.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+      if (append) setPosts((prev) => [...prev, ...list]);
+      else setPosts(list);
     } finally {
-      setLoading(false);
+      if (append) { setLoadingMore(false); loadingMoreRef.current = false; }
+      else         { setLoading(false);    loadingRef.current = false; }
     }
   }, []);
 
-  useEffect(() => { loadPosts(activeCareer); }, [activeCareer, loadPosts]);
+  // Reset and load first page when career tab changes
+  useEffect(() => {
+    lastDocRef.current = null;
+    setHasMore(true);
+    hasMoreRef.current = true;
+    loadPosts(activeCareer, null);
+  }, [activeCareer, loadPosts]);
+
+  // Load next page
+  const handleLoadMore = useCallback(() => {
+    if (loadingRef.current || loadingMoreRef.current || !hasMoreRef.current) return;
+    loadPosts(activeCareer, lastDocRef.current);
+  }, [activeCareer, loadPosts]);
+
+  // IntersectionObserver watches a sentinel div at the bottom of the feed
+  useEffect(() => {
+    const loader = loaderRef.current;
+    if (!loader) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => { if (entry.isIntersecting) handleLoadMore(); },
+      { rootMargin: "400px" },
+    );
+    observer.observe(loader);
+    return () => observer.disconnect();
+  }, [handleLoadMore]);
 
   const handleLike = async (postId: string) => {
     if (!currentUserId) return;
@@ -598,7 +704,7 @@ export default function ComunidadPage() {
                 Comunidad activa
               </span>
               <span>·</span>
-              <span>{posts.length} publicaciones</span>
+              <span>{posts.length > 0 ? `${posts.length}+ publicaciones` : "Comunidad activa"}</span>
             </div>
           </motion.div>
         </div>
@@ -680,11 +786,20 @@ export default function ComunidadPage() {
           </AnimatePresence>
         )}
 
-        {posts.length > 0 && !loading && (
-          <p className="text-center text-xs text-slate-400 py-4">
-            Has visto todos los posts de {activeMeta.label} ✓
-          </p>
-        )}
+        {/* Sentinel — IntersectionObserver fires handleLoadMore when this enters viewport */}
+        <div ref={loaderRef} className="py-6 flex flex-col items-center gap-2">
+          {loadingMore && (
+            <div className="flex items-center gap-2 text-slate-400">
+              <div className="h-4 w-4 rounded-full border-2 border-slate-200 border-t-indigo-500 animate-spin" />
+              <span className="text-xs">Cargando más publicaciones...</span>
+            </div>
+          )}
+          {!loading && !loadingMore && !hasMore && posts.length > 0 && (
+            <p className="text-xs text-slate-400">
+              Has visto todos los posts de {activeMeta.label} ✓
+            </p>
+          )}
+        </div>
       </div>
     </main>
   );
