@@ -4,10 +4,10 @@ import React, { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { useAuthState } from "react-firebase-hooks/auth";
-import { auth } from "@/lib/firebase"; // adjust to your firebase init path
-import AvatarSVG from "@/components/avatar/AvatarSVG";
-import AvatarCustomizer from "@/components/avatar/AvatarCustomizer";
-import { AvatarConfig, Career } from "@/types/avatar";
+import { auth } from "@/src/firebase/config";
+import AvatarSVG from "@/app/components/avatar/AvatarSVG";
+import AvatarCustomizer from "@/app/components/avatar/AvatarCustomizer";
+import { AvatarConfig, Career, CareerCosmetic } from "@/types/avatar";
 import { CAREER_COSMETICS } from "@/lib/careerCosmetics";
 import { saveAvatar, loadAvatar, applyCareerCosmetic } from "@/src/services/avatarService";
 import { Button } from "@/components/ui/button";
@@ -126,7 +126,7 @@ export default function VocationalResultPage({ careerResult = null }: Vocational
                   exit={{ opacity: 0, scale: 0.9 }}
                   className="rounded-2xl overflow-hidden shadow-xl border border-white/60"
                 >
-                  <AvatarSVG config={config} size={280} animated />
+                  <AvatarSVG config={config} size={280} />
                 </motion.div>
               )}
             </AnimatePresence>
@@ -198,7 +198,6 @@ export default function VocationalResultPage({ careerResult = null }: Vocational
               <AvatarCustomizer
                 config={config}
                 onChange={setConfig}
-                disabled={phase === "reveal"}
               />
             </motion.div>
           )}
@@ -216,7 +215,7 @@ function RevealAnimation({
   onDone,
 }: {
   config: AvatarConfig;
-  cosmetic: ReturnType<typeof CAREER_COSMETICS[Career]> | null;
+  cosmetic: CareerCosmetic | null;
   onDone: () => void;
 }) {
   const [step, setStep] = useState(0);

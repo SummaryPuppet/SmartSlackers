@@ -25,11 +25,29 @@ interface AvatarCustomizerProps {
   careerResult?: string | null;
   /** Callback opcional al guardar */
   onSaved?: () => void;
+  /** Configuración controlada opcional */
+  config?: AvatarConfig;
+  /** Se llama cuando cambia la configuración */
+  onChange?: (config: AvatarConfig) => void;
+  /** Deshabilita la edición */
+  disabled?: boolean;
 }
 
-export default function AvatarCustomizer({ careerResult, onSaved }: AvatarCustomizerProps) {
+export default function AvatarCustomizer({
+  careerResult,
+  onSaved,
+  config: configProp,
+  onChange: onChangeProp,
+  disabled = false,
+}: AvatarCustomizerProps) {
   const [user] = useAuthState(auth);
-  const [config, setConfig] = useState<AvatarConfig>(DEFAULT_CONFIG);
+  const [config, setConfig] = useState<AvatarConfig>(configProp ?? DEFAULT_CONFIG);
+
+  useEffect(() => {
+    if (configProp) {
+      setConfig(configProp);
+    }
+  }, [configProp]);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
 
@@ -54,7 +72,9 @@ export default function AvatarCustomizer({ careerResult, onSaved }: AvatarCustom
   }, [careerResult]);
 
   function update<K extends keyof AvatarConfig>(key: K, value: AvatarConfig[K]) {
-    setConfig((prev) => ({ ...prev, [key]: value }));
+    const nextConfig = { ...config, [key]: value };
+    setConfig(nextConfig);
+    onChangeProp?.(nextConfig);
   }
 
   async function handleSave() {
@@ -109,7 +129,7 @@ export default function AvatarCustomizer({ careerResult, onSaved }: AvatarCustom
         {user ? (
           <button
             onClick={handleSave}
-            disabled={saving}
+            disabled={saving || disabled}
             className="w-full max-w-[200px] py-2 rounded-xl text-sm font-medium text-white transition-opacity disabled:opacity-60"
             style={{ backgroundColor: accentColor }}
           >
