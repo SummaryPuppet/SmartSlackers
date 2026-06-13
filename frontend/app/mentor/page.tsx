@@ -8,6 +8,7 @@ import Navbar from "@/components/Navbar";
 import { onAuthStateChanged } from "firebase/auth";
 import { auth } from "../../src/firebase/config";
 import { db } from "../../src/firebase/config";
+import { doc, getDoc, setDoc, deleteDoc, serverTimestamp } from "firebase/firestore";
 import { doc, getDoc, setDoc, serverTimestamp } from "firebase/firestore";
 import { trackBadgeEvent, showBadgeNotification } from "@/src/services/badgeService";
 
@@ -222,6 +223,68 @@ function MessageBubble({
   );
 }
 
+function ClearChatModal({
+  onConfirm,
+  onCancel,
+}: {
+  onConfirm: () => void;
+  onCancel: () => void;
+}) {
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm px-4"
+    >
+      <motion.div
+        initial={{ scale: 0.9, opacity: 0, y: 20 }}
+        animate={{ scale: 1, opacity: 1, y: 0 }}
+        exit={{ scale: 0.9, opacity: 0, y: 20 }}
+        transition={{ type: "spring", damping: 25, stiffness: 300 }}
+        className="w-full max-w-sm rounded-2xl bg-white p-6 shadow-2xl"
+      >
+        <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-red-100 mx-auto">
+          <svg
+            className="h-6 w-6 text-red-600"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+            />
+          </svg>
+        </div>
+        <h3 className="text-lg font-bold text-slate-900 text-center">
+          Limpiar conversación
+        </h3>
+        <p className="mt-2 text-sm text-slate-500 text-center">
+          Se eliminará todo el historial de esta conversación. Esta acción no se
+          puede deshacer.
+        </p>
+        <div className="mt-6 flex gap-3">
+          <button
+            onClick={onCancel}
+            className="flex-1 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
+          >
+            Cancelar
+          </button>
+          <button
+            onClick={onConfirm}
+            className="flex-1 rounded-xl bg-gradient-to-br from-red-500 to-rose-500 px-4 py-2.5 text-sm font-medium text-white shadow-lg shadow-red-500/25 transition hover:shadow-xl"
+          >
+            Limpiar
+          </button>
+        </div>
+      </motion.div>
+    </motion.div>
+  );
+}
+
 function CareerSelector({
   onSelect,
 }: {
@@ -362,6 +425,7 @@ export default function MentorPage() {
   const [mentorInfo, setMentorInfo] = useState<MentorInfo | null>(null);
   const [started, setStarted] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
+  const [showClearModal, setShowClearModal] = useState(false);
   const [isConnected, setIsConnected] = useState<boolean | null>(null);
   const [connectionError, setConnectionError] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -410,6 +474,18 @@ export default function MentorPage() {
     },
     [userId]
   );
+
+  const clearChat = useCallback(async () => {
+    if (!userId || !selectedCareerId) return;
+    const docId = `${userId}_${selectedCareerId}`;
+    const docRef = doc(db, "ChatHistories", docId);
+    await deleteDoc(docRef);
+    setMessages([]);
+    setMentorInfo(null);
+    setShowClearModal(false);
+    setStarted(false);
+    setSelectedCareerId(null);
+  }, [userId, selectedCareerId]);
 
   useEffect(() => {
     scrollToBottom();
@@ -668,6 +744,25 @@ export default function MentorPage() {
           </div>
 
           <div className="ml-auto flex items-center gap-2">
+            <button
+              onClick={() => setShowClearModal(true)}
+              className="flex h-8 items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 text-xs font-medium text-slate-600 transition hover:bg-red-50 hover:text-red-600 hover:border-red-200"
+            >
+              <svg
+                className="h-3.5 w-3.5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                />
+              </svg>
+              Limpiar
+            </button>
             {isConnected === true && (
               <div className="flex items-center gap-1.5 rounded-full bg-green-50 px-3 py-1">
                 <div className="h-1.5 w-1.5 rounded-full bg-green-500 animate-pulse" />
@@ -837,6 +932,13 @@ export default function MentorPage() {
           </p>
         </div>
       </div>
+
+      {showClearModal && (
+        <ClearChatModal
+          onConfirm={clearChat}
+          onCancel={() => setShowClearModal(false)}
+        />
+      )}
     </div>
   );
 }
