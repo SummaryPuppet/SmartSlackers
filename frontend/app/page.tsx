@@ -1,3 +1,4 @@
+"use client";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -74,7 +75,7 @@ export default function Home() {
             </a>
             <a
               className="transition-colors hover:text-red-500"
-              href="#carreras"
+              href="/carreras"
             >
               Explorar Carreras
             </a>
@@ -139,6 +140,7 @@ export default function Home() {
               <Button
                 size="lg"
                 className="bg-linear-to-r from-red-600 via-rose-600 to-orange-500 shadow-[0_18px_45px_rgba(220,38,38,0.35)] transition-all hover:brightness-110 hover:scale-105"
+                onClick={() => window.location.href = "/test"}
               >
                 Comenzar mi viaje
               </Button>
