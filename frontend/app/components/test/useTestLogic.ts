@@ -72,7 +72,7 @@ export function useTestLogic() {
     });
     const winner =
       Object.entries(count).sort((a, b) => b[1] - a[1])[0]?.[0] ?? "software";
-    return careerResults[winner];
+    return { ...careerResults[winner], careerKey: winner };
   };
 
   return {

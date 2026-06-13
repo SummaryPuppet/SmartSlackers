@@ -18,6 +18,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { usePathname } from "next/navigation";
 
 const highlights = [
   { title: "+2,500", description: "estudiantes acompañados" },
@@ -76,6 +77,9 @@ useEffect(() => {
 
   return () => unsubscribe();
 }, [router]);
+  const pathname = usePathname();
+  const isHome = pathname === "/";
+
   return (
     <main className="relative min-h-screen overflow-hidden bg-[radial-gradient(circle_at_top_left,rgba(220,38,38,0.14),transparent_28%),radial-gradient(circle_at_top_right,rgba(244,63,94,0.12),transparent_24%),linear-gradient(180deg,#fff5f5_0%,#fef2f2_100%)] text-slate-900">
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
@@ -101,7 +105,15 @@ useEffect(() => {
           <nav className="hidden items-center gap-8 text-sm font-medium text-slate-600 lg:flex">
             <a
               className="text-red-700 transition-colors hover:text-red-500"
-              href="#inicio"
+              href={isHome ? "#inicio" : "/#inicio"}
+              onClick={(e) => {
+                if (isHome) {
+                  e.preventDefault();
+                  document
+                    .getElementById("inicio")
+                    ?.scrollIntoView({ behavior: "smooth" });
+                }
+              }}
             >
               Inicio
             </a>
@@ -110,16 +122,25 @@ useEffect(() => {
             </a>
             <a
               className="transition-colors hover:text-red-500"
-              href="#carreras"
+              href="/carreras"
             >
               Explorar Carreras
+            </a>
+            <a
+              className="relative transition-colors hover:text-red-500 font-semibold text-red-600"
+              href="/simular"
+            >
+              Simular Carrera
+              <span className="absolute -top-2 -right-4 rounded-full bg-red-600 px-1.5 py-0.5 text-[9px] font-bold text-white leading-none">
+                NEW
+              </span>
             </a>
             <a className="transition-colors hover:text-red-500" href="#mentor">
               Mentor IA
             </a>
             <a
               className="transition-colors hover:text-red-500"
-              href="#recursos"
+              href="/recursos"
             >
               Recursos
             </a>
@@ -193,6 +214,7 @@ useEffect(() => {
               <Button
                 size="lg"
                 className="bg-linear-to-r from-red-600 via-rose-600 to-orange-500 shadow-[0_18px_45px_rgba(220,38,38,0.35)] transition-all hover:brightness-110 hover:scale-105"
+                onClick={() => window.location.href = "/test"}
               >
                 Comenzar mi viaje
               </Button>

@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 type Result = {
   title: string; desc: string;
   match: number; color: string; emoji: string;
+  careerKey: string;
 };
 
 export default function ResultScreen({
@@ -12,7 +13,6 @@ export default function ResultScreen({
 }: { result: Result; score: number }) {
   const [displayMatch, setDisplayMatch] = useState(0);
 
-  // Animación del contador de compatibilidad
   useEffect(() => {
     let start = 0;
     const interval = setInterval(() => {
@@ -41,7 +41,6 @@ export default function ResultScreen({
         backdropFilter: "blur(12px)",
       }}
     >
-      {/* Confetti emoji animado */}
       <motion.div
         initial={{ scale: 0, rotate: -180 }}
         animate={{ scale: 1, rotate: 0 }}
@@ -71,7 +70,6 @@ export default function ResultScreen({
         {result.emoji} {result.title}
       </motion.h2>
 
-      {/* Barra de compatibilidad */}
       <div style={{
         background: "rgba(255,255,255,0.95)",
         borderRadius: "12px", padding: "1.25rem",
@@ -102,7 +100,6 @@ export default function ResultScreen({
         </div>
       </div>
 
-      {/* Descripción */}
       <motion.p
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
@@ -115,7 +112,6 @@ export default function ResultScreen({
         {result.desc}
       </motion.p>
 
-      {/* Score */}
       <div style={{
         display: "inline-flex", alignItems: "center", gap: "8px",
         background: "rgba(255,255,255,0.95)",
@@ -134,12 +130,11 @@ export default function ResultScreen({
         </div>
       </div>
 
-      {/* Botones */}
       <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
         <motion.button
           whileHover={{ scale: 1.03 }}
           whileTap={{ scale: 0.97 }}
-          onClick={() => window.location.href = "/dashboard"}
+          onClick={() => window.location.href = `/roadmap?career=${result.careerKey}`}
           style={{
             width: "100%", padding: "14px",
             background: "linear-gradient(135deg, #ffb3b3, #ff7f7f)",
