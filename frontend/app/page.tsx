@@ -1,4 +1,13 @@
 "use client";
+
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { onAuthStateChanged } from "firebase/auth";
+import { auth } from "../src/firebase/config";
+import { logout } from "../src/services/authService";
+import { doc, getDoc } from "firebase/firestore";
+import { db } from "../src/firebase/config";
+
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -42,6 +51,32 @@ const features = [
 ];
 
 export default function Home() {
+  const router = useRouter();
+  const [userEmail, setUserEmail] = useState("");
+  const [userName, setUserName] = useState("");
+  
+useEffect(() => {
+  const unsubscribe = onAuthStateChanged(auth, async (user) => {
+
+    if (!user) {
+      router.push("/login");
+      return;
+    }
+
+    setUserEmail(user.email || "");
+
+    const docRef = doc(db, "usuarios", user.uid);
+    const docSnap = await getDoc(docRef);
+
+    if (docSnap.exists()) {
+      const data = docSnap.data();
+
+      setUserName(data.nombre || "");
+    }
+  });
+
+  return () => unsubscribe();
+}, [router]);
   const pathname = usePathname();
   const isHome = pathname === "/";
 
@@ -117,17 +152,35 @@ export default function Home() {
             </a>
           </nav>
 
-          <div className="flex items-center gap-3 animate-slide-in-right animate-delay-200">
-            <Button variant="outline" size="lg">
-              Iniciar sesión
-            </Button>
-            <Button
-              size="lg"
-              className="shadow-[0_16px_40px_rgba(220,38,38,0.28)] transition-transform hover:scale-105"
-            >
-              Registrarme
-            </Button>
-          </div>
+      <div className="flex items-center gap-4 animate-slide-in-right animate-delay-200">
+
+        <div className="hidden md:flex flex-col text-right">
+          <span className="text-sm font-semibold text-slate-900">
+            Bienvenido, {userName}
+          </span>
+
+          <span className="text-xs text-slate-500">
+            {userEmail}
+          </span>
+        </div>
+
+        <Avatar>
+          <AvatarFallback className="bg-red-600 text-white">
+            {userName?.charAt(0).toUpperCase()}
+          </AvatarFallback>
+        </Avatar>
+
+        <Button
+          variant="outline"
+          onClick={async () => {
+            await logout();
+            router.push("/login");
+          }}
+        >
+          Cerrar sesión
+        </Button>
+
+      </div>
         </div>
       </header>
 

@@ -3,24 +3,58 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { login, register } from "../../src/services/authService";
+import { useRouter } from "next/navigation";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [isLogin, setIsLogin] = useState(true);
+  const [name, setName] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
 
-  const handleRegister = async () => {
-    try {
-      await register(email, password);
-      alert("Usuario registrado correctamente");
-    } catch (error: any) {
-      alert(error.message);
+  const router = useRouter();
+
+const handleRegister = async () => {
+  try {
+
+    // Validar nombre
+    if (!name.trim()) {
+      alert("Ingresa tu nombre");
+      return;
     }
-  };
+
+    // Validar contraseñas
+    if (password !== confirmPassword) {
+      alert("Las contraseñas no coinciden");
+      return;
+    }
+
+    // Validar longitud mínima
+    if (password.length < 6) {
+      alert("La contraseña debe tener al menos 6 caracteres");
+      return;
+    }
+
+      await register(
+      email,
+      password,
+      name
+    );
+
+    alert("Usuario registrado correctamente");
+
+    router.push("/");
+
+  } catch (error: any) {
+    alert(error.message);
+  }
+};
 
   const handleLogin = async () => {
     try {
       await login(email, password);
       alert("Inicio de sesión exitoso");
+      router.push("/");
     } catch (error: any) {
       alert(error.message);
     }
@@ -54,7 +88,7 @@ export default function LoginPage() {
               }}
               className="text-5xl font-bold mb-3"
             >
-              JourneyAI
+              Vocatio
             </motion.h1>
 
             <div className="w-24 h-1 bg-white rounded-full"></div>
@@ -144,19 +178,46 @@ export default function LoginPage() {
           className="bg-white w-full max-w-md rounded-3xl shadow-2xl p-8"
         >
 
-          <div className="text-center mb-8">
+        <h2 className="text-3xl font-bold text-gray-900">
+          {isLogin ? "Bienvenido" : "Crear Cuenta"}
+        </h2>
 
-            <h2 className="text-3xl font-bold text-gray-900">
-              Bienvenido
-            </h2>
-
-            <p className="text-gray-500 mt-2">
-              Inicia sesión para continuar
-            </p>
-
-          </div>
+        <p className="text-gray-500 mt-2">
+          {isLogin
+            ? "Inicia sesión para continuar"
+            : "Completa tus datos para registrarte"}
+        </p>
 
           <div className="space-y-5">
+
+        {!isLogin && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+          >
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Nombre
+            </label>
+
+            <input
+              type="text"
+              placeholder="Tu nombre"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              className="
+                w-full
+                px-4
+                py-3
+                border
+                border-gray-300
+                rounded-xl
+                focus:outline-none
+                focus:ring-2
+                focus:ring-red-700
+              "
+            />
+          </motion.div>
+        )}
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -208,51 +269,83 @@ export default function LoginPage() {
               />
             </div>
 
-            <motion.button
-              whileHover={{
-                scale: 1.03,
-              }}
-              whileTap={{
-                scale: 0.97,
-              }}
-              onClick={handleLogin}
-              className="
-                w-full
-                bg-red-800
-                hover:bg-red-900
-                text-white
-                py-3
-                rounded-xl
-                font-semibold
-                transition
-                shadow-lg
-              "
-            >
-              Iniciar Sesión
-            </motion.button>
+      {!isLogin && (
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+        >
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Confirmar contraseña
+          </label>
 
-            <motion.button
-              whileHover={{
-                scale: 1.03,
-              }}
-              whileTap={{
-                scale: 0.97,
-              }}
-              onClick={handleRegister}
-              className="
-                w-full
-                border-2
-                border-red-800
-                text-red-800
-                hover:bg-red-50
-                py-3
-                rounded-xl
-                font-semibold
-                transition
-              "
-            >
-              Registrarse
-            </motion.button>
+          <input
+            type="password"
+            placeholder="********"
+            value={confirmPassword}
+            onChange={(e) => setConfirmPassword(e.target.value)}
+            className="
+              w-full
+              px-4
+              py-3
+              border
+              border-gray-300
+              rounded-xl
+              focus:outline-none
+              focus:ring-2
+              focus:ring-red-700
+            "
+          />
+        </motion.div>
+      )}
+
+      <motion.button
+        whileHover={{ scale: 1.03 }}
+        whileTap={{ scale: 0.97 }}
+        onClick={isLogin ? handleLogin : handleRegister}
+        className="
+          w-full
+          bg-red-800
+          hover:bg-red-900
+          text-white
+          py-3
+          rounded-xl
+          font-semibold
+          transition
+          shadow-lg
+        "
+      >
+        {isLogin ? "Iniciar Sesión" : "Crear Cuenta"}
+      </motion.button>
+
+          <div className="text-center mt-4">
+      {isLogin ? (
+        <>
+          <span className="text-gray-500">
+            ¿No tienes cuenta?
+          </span>
+
+          <button
+            onClick={() => setIsLogin(false)}
+            className="ml-2 text-red-700 font-semibold hover:underline"
+          >
+            Registrarse
+          </button>
+        </>
+      ) : (
+        <>
+          <span className="text-gray-500">
+            ¿Ya tienes cuenta?
+          </span>
+
+          <button
+            onClick={() => setIsLogin(true)}
+            className="ml-2 text-red-700 font-semibold hover:underline"
+          >
+            Iniciar sesión
+          </button>
+        </>
+      )}
+    </div>
 
           </div>
 
