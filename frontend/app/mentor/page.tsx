@@ -88,6 +88,96 @@ function TypingIndicator() {
   );
 }
 
+function ConnectionError({
+  message,
+  onRetry,
+  careerColor,
+}: {
+  message: string;
+  onRetry: () => void;
+  careerColor: string;
+}) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20, scale: 0.95 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      transition={{ duration: 0.4, ease: "easeOut" }}
+      className="mx-auto my-4 max-w-md"
+    >
+      <div className="relative overflow-hidden rounded-2xl border border-red-100 bg-gradient-to-br from-red-50 via-white to-orange-50 shadow-lg shadow-red-500/10">
+        {/* Decorative top bar */}
+        <div
+          className="h-1 w-full"
+          style={{
+            background: `linear-gradient(90deg, ${careerColor}, ${careerColor}88, ${careerColor})`,
+          }}
+        />
+
+        <div className="px-6 py-5 text-center">
+          {/* Icon */}
+          <motion.div
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            transition={{ type: "spring", stiffness: 200, damping: 12, delay: 0.15 }}
+            className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-red-100"
+          >
+            <svg
+              className="h-7 w-7 text-red-500"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={2}
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M18.364 5.636a9 9 0 010 12.728m-2.829-2.829a5 5 0 00-.707-7.071M12 8v4m0 4h.01"
+              />
+            </svg>
+          </motion.div>
+
+          {/* Title */}
+          <h3 className="text-sm font-bold text-slate-900">
+            No se pudo conectar con el mentor
+          </h3>
+
+          {/* Description */}
+          <p className="mt-1.5 text-xs leading-relaxed text-slate-500">
+            {message || "Verifica que el backend esté corriendo e intenta de nuevo."}
+          </p>
+
+          {/* Retry button */}
+          <motion.button
+            whileHover={{ scale: 1.03 }}
+            whileTap={{ scale: 0.97 }}
+            onClick={onRetry}
+            className="mt-4 inline-flex items-center gap-2 rounded-xl px-5 py-2.5 text-xs font-semibold text-white shadow-md transition-shadow hover:shadow-lg"
+            style={{
+              background: `linear-gradient(135deg, ${careerColor}, ${careerColor}cc)`,
+              boxShadow: `0 4px 14px ${careerColor}30`,
+            }}
+          >
+            <svg
+              className="h-3.5 w-3.5"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={2.5}
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+              />
+            </svg>
+            Reintentar
+          </motion.button>
+        </div>
+      </div>
+    </motion.div>
+  );
+}
+
 function MessageBubble({
   message,
   mentorName,
@@ -271,6 +361,8 @@ export default function MentorPage() {
   const [mentorInfo, setMentorInfo] = useState<MentorInfo | null>(null);
   const [started, setStarted] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
+  const [isConnected, setIsConnected] = useState<boolean | null>(null);
+  const [connectionError, setConnectionError] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
@@ -332,12 +424,15 @@ export default function MentorPage() {
     setSelectedCareerId(careerId);
     setStarted(true);
     setIsLoading(true);
+    setConnectionError(null);
+    setIsConnected(null);
 
     try {
       const existingMessages = await loadChatHistory(careerId);
 
       if (existingMessages.length > 0) {
         setMessages(existingMessages);
+        setIsConnected(true);
         setIsLoading(false);
         return;
       }
@@ -358,9 +453,11 @@ export default function MentorPage() {
       });
 
       if (!res.ok) {
-        throw new Error("Error al conectar con el mentor");
+        setIsConnected(false);
+        throw new Error("El servidor respondió con un error. Verifica que el backend esté activo.");
       }
 
+      setIsConnected(true);
       const reader = res.body!.getReader();
       const decoder = new TextDecoder();
       let assistantContent = "";
@@ -396,7 +493,7 @@ export default function MentorPage() {
       }
 
       if (!assistantContent) {
-        throw new Error("No se recibió respuesta del mentor");
+        throw new Error("El mentor no devolvió una respuesta válida.");
       }
 
       const finalMessages: Message[] = [
@@ -405,15 +502,13 @@ export default function MentorPage() {
       ];
       await saveChatHistory(careerId, finalMessages);
     } catch (error) {
-      const errorMsg: Message = {
-        role: "assistant",
-        content:
-          "Hubo un error al conectar. Verifica que el backend esté corriendo en " +
-          MENTOR_API_URL +
-          ". Error: " +
-          (error instanceof Error ? error.message : "desconocido"),
-      };
-      setMessages([errorMsg]);
+      setIsConnected(false);
+      const errorMsg =
+        error instanceof Error
+          ? error.message
+          : "Error desconocido al conectar con el mentor.";
+      setConnectionError(errorMsg);
+      setMessages([]);
     } finally {
       setIsLoading(false);
     }
@@ -428,6 +523,7 @@ export default function MentorPage() {
     setMessages(newMessages);
     setInput("");
     setIsLoading(true);
+    setConnectionError(null);
 
     try {
       const res = await fetch(`${MENTOR_API_URL}/api/mentor`, {
@@ -440,9 +536,11 @@ export default function MentorPage() {
       });
 
       if (!res.ok) {
-        throw new Error("Error del mentor");
+        setIsConnected(false);
+        throw new Error("El servidor respondió con un error.");
       }
 
+      setIsConnected(true);
       const reader = res.body!.getReader();
       const decoder = new TextDecoder();
       let assistantContent = "";
@@ -477,7 +575,7 @@ export default function MentorPage() {
       }
 
       if (!assistantContent) {
-        throw new Error("No se recibió respuesta del mentor");
+        throw new Error("El mentor no devolvió una respuesta válida.");
       }
 
       const finalMessages: Message[] = [
@@ -486,16 +584,13 @@ export default function MentorPage() {
       ];
       await saveChatHistory(selectedCareerId, finalMessages);
     } catch (error) {
-      const errorMsg: Message = {
-        role: "assistant",
-        content:
-          "Disculpa, tuve un problema técnico. Verifica que el backend esté corriendo. (" +
-          (error instanceof Error ? error.message : "error") +
-          ")",
-      };
-      const errorMessages = [...newMessages, errorMsg];
-      setMessages(errorMessages);
-      await saveChatHistory(selectedCareerId, errorMessages);
+      setIsConnected(false);
+      const errorMsg =
+        error instanceof Error
+          ? error.message
+          : "Error desconocido al conectar con el mentor.";
+      setConnectionError(errorMsg);
+      await saveChatHistory(selectedCareerId, newMessages);
     } finally {
       setIsLoading(false);
     }
@@ -514,6 +609,14 @@ export default function MentorPage() {
     setInput("");
     setMentorInfo(null);
     setStarted(false);
+    setIsConnected(null);
+    setConnectionError(null);
+  };
+
+  const retryConnection = () => {
+    if (selectedCareerId) {
+      startInterview(selectedCareerId);
+    }
   };
 
   if (!started) {
@@ -555,12 +658,30 @@ export default function MentorPage() {
           </div>
 
           <div className="ml-auto flex items-center gap-2">
-            <div className="flex items-center gap-1.5 rounded-full bg-green-50 px-3 py-1">
-              <div className="h-1.5 w-1.5 rounded-full bg-green-500 animate-pulse" />
-              <span className="text-[10px] font-medium text-green-700">
-                En línea
-              </span>
-            </div>
+            {isConnected === true && (
+              <div className="flex items-center gap-1.5 rounded-full bg-green-50 px-3 py-1">
+                <div className="h-1.5 w-1.5 rounded-full bg-green-500 animate-pulse" />
+                <span className="text-[10px] font-medium text-green-700">
+                  En línea
+                </span>
+              </div>
+            )}
+            {isConnected === false && (
+              <div className="flex items-center gap-1.5 rounded-full bg-red-50 px-3 py-1">
+                <div className="h-1.5 w-1.5 rounded-full bg-red-400" />
+                <span className="text-[10px] font-medium text-red-600">
+                  Desconectado
+                </span>
+              </div>
+            )}
+            {isConnected === null && (
+              <div className="flex items-center gap-1.5 rounded-full bg-slate-50 px-3 py-1">
+                <div className="h-1.5 w-1.5 rounded-full bg-slate-400 animate-pulse" />
+                <span className="text-[10px] font-medium text-slate-500">
+                  Conectando...
+                </span>
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -602,6 +723,15 @@ export default function MentorPage() {
               mentorName={mentorInfo?.name || "Mentor"}
             />
           ))}
+
+          {/* Connection error card */}
+          {connectionError && !isLoading && (
+            <ConnectionError
+              message={connectionError}
+              onRetry={retryConnection}
+              careerColor={careerColor}
+            />
+          )}
 
           {/* Typing indicator */}
           {isLoading && (

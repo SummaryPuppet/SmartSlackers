@@ -1,12 +1,7 @@
 ﻿"use client";
 
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
-import { onAuthStateChanged } from "firebase/auth";
-import { auth } from "@/src/firebase/config";
-import { doc, getDoc } from "firebase/firestore";
-import { db } from "@/src/firebase/config";
 import Navbar from "@/components/Navbar";
+
 import {
   Card,
   CardContent,
@@ -45,26 +40,22 @@ const resourceCards = [
 const utpResources = [
   {
     title: "Campus UTP",
-    description:
-      "Conoce nuestras sedes, laboratorios y espacios para estudiantes.",
+    description: "Conoce nuestras sedes, laboratorios y espacios para estudiantes.",
     icon: "🏫",
   },
   {
     title: "Carreras destacadas",
-    description:
-      "Explora programas como Ingeniería de Software, Diseño Digital y Gestión Empresarial.",
+    description: "Explora programas como Ingeniería de Software, Diseño Digital y Gestión Empresarial.",
     icon: "🎓",
   },
   {
     title: "Becas y apoyos",
-    description:
-      "Encuentra los apoyos económicos disponibles para estudiantes nuevos.",
+    description: "Encuentra los apoyos económicos disponibles para estudiantes nuevos.",
     icon: "💰",
   },
   {
     title: "Talleres UTP",
-    description:
-      "Participa en sesiones de orientación, entrevistas y preparación académica.",
+    description: "Participa en sesiones de orientación, entrevistas y preparación académica.",
     icon: "📘",
   },
 ];
@@ -72,8 +63,7 @@ const utpResources = [
 const studentServices = [
   {
     title: "Mentorías vocacionales",
-    detail:
-      "Sesiones personalizadas para definir tus intereses y opciones de estudio.",
+    detail: "Sesiones personalizadas para definir tus intereses y opciones de estudio.",
     icon: "🧭",
   },
   {
@@ -89,42 +79,16 @@ const studentServices = [
 ];
 
 export default function ResourcesPage() {
-  const router = useRouter();
-  const [userEmail, setUserEmail] = useState("");
-  const [userName, setUserName] = useState("");
-
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      if (!user) {
-        setUserEmail("");
-        setUserName("");
-        return;
-      }
-
-      setUserEmail(user.email || "");
-      try {
-        const docRef = doc(db, "usuarios", user.uid);
-        const docSnap = await getDoc(docRef);
-        if (docSnap.exists()) {
-          const data = docSnap.data();
-          setUserName(data.nombre || "");
-        }
-      } catch (e) {
-        // ignore
-      }
-    });
-    return () => unsubscribe();
-  }, [router]);
-
   return (
     <main className="relative min-h-screen overflow-hidden bg-[radial-gradient(circle_at_top_left,rgba(220,38,38,0.16),transparent_30%),radial-gradient(circle_at_top_right,rgba(244,63,94,0.14),transparent_26%),linear-gradient(180deg,#fff5f5_0%,#fdf2f2_100%)] text-slate-950">
+      {/* Navbar compartido — incluye menú de avatar con Ver perfil y Cerrar sesión */}
+      <Navbar />
+
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
         <div className="absolute -left-32 top-20 h-80 w-80 rounded-full bg-red-300/30 blur-3xl" />
         <div className="absolute -right-28 top-24 h-96 w-96 rounded-full bg-rose-300/25 blur-3xl" />
         <div className="absolute bottom-0 left-1/2 h-96 w-96 -translate-x-1/2 rounded-full bg-orange-300/25 blur-3xl" />
       </div>
-
-      <Navbar />
 
       <section className="relative z-10 mx-auto w-full max-w-7xl px-6 py-12 lg:px-8 lg:py-20 animate-fade-up">
         <div className="grid gap-12 lg:grid-cols-[1.1fr_0.9fr] items-center">
@@ -134,62 +98,27 @@ export default function ResourcesPage() {
                 <rect x="0" y="0" width="38" height="40" fill="#c8102e" />
                 <rect x="41" y="0" width="38" height="40" fill="#c8102e" />
                 <rect x="82" y="0" width="38" height="40" fill="#c8102e" />
-                <text
-                  x="19"
-                  y="27"
-                  textAnchor="middle"
-                  fontSize="22"
-                  fontWeight="700"
-                  fill="#fff"
-                  fontFamily="Arial, sans-serif"
-                >
-                  U
-                </text>
-                <text
-                  x="60"
-                  y="27"
-                  textAnchor="middle"
-                  fontSize="22"
-                  fontWeight="700"
-                  fill="#fff"
-                  fontFamily="Arial, sans-serif"
-                >
-                  T
-                </text>
-                <text
-                  x="101"
-                  y="27"
-                  textAnchor="middle"
-                  fontSize="22"
-                  fontWeight="700"
-                  fill="#fff"
-                  fontFamily="Arial, sans-serif"
-                >
-                  P
-                </text>
+                <text x="19" y="27" textAnchor="middle" fontSize="22" fontWeight="700" fill="#fff" fontFamily="Arial, sans-serif">U</text>
+                <text x="60" y="27" textAnchor="middle" fontSize="22" fontWeight="700" fill="#fff" fontFamily="Arial, sans-serif">T</text>
+                <text x="101" y="27" textAnchor="middle" fontSize="22" fontWeight="700" fill="#fff" fontFamily="Arial, sans-serif">P</text>
               </svg>
             </div>
             <h1 className="text-5xl font-black tracking-tight text-slate-950 sm:text-6xl animate-fade-up animate-delay-300">
               Recursos UTP para impulsar tu ingreso a la universidad.
             </h1>
             <p className="max-w-2xl text-lg leading-8 text-slate-600 sm:text-xl animate-fade-up animate-delay-400">
-              Información, eventos y apoyo diseñado para futuros estudiantes de
-              la UTP. Aprende qué estudiar, cómo postular y qué becas están
-              disponibles.
+              Información, eventos y apoyo diseñado para futuros estudiantes de la UTP.
+              Aprende qué estudiar, cómo postular y qué becas están disponibles.
             </p>
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="rounded-4xl bg-white/90 p-6 shadow-[0_25px_70px_rgba(220,38,38,0.08)] border border-white/80 animate-fade-up animate-delay-500 transition-transform duration-500 hover:-translate-y-1 hover:shadow-[0_30px_80px_rgba(220,38,38,0.12)]">
-                <p className="text-sm uppercase tracking-[0.2em] text-red-600">
-                  Becas UTP
-                </p>
+                <p className="text-sm uppercase tracking-[0.2em] text-red-600">Becas UTP</p>
                 <p className="mt-4 text-lg font-semibold text-slate-950">
                   Apoyos económicos y planes de pago flexibles.
                 </p>
               </div>
               <div className="rounded-4xl bg-white/90 p-6 shadow-[0_25px_70px_rgba(220,38,38,0.08)] border border-white/80 animate-fade-up animate-delay-600 transition-transform duration-500 hover:-translate-y-1 hover:shadow-[0_30px_80px_rgba(220,38,38,0.12)]">
-                <p className="text-sm uppercase tracking-[0.2em] text-orange-700">
-                  Talleres
-                </p>
+                <p className="text-sm uppercase tracking-[0.2em] text-orange-700">Talleres</p>
                 <p className="mt-4 text-lg font-semibold text-slate-950">
                   Sesiones para presentar tu perfil y conocer carreras.
                 </p>
@@ -203,15 +132,10 @@ export default function ResourcesPage() {
                 📚
               </div>
               <div className="mt-6">
-                <p className="text-xs uppercase tracking-[0.24em] text-slate-500 animate-fade-up animate-delay-500">
-                  Recursos
-                </p>
-                <p className="mt-3 text-4xl font-black text-slate-950 animate-fade-up animate-delay-600">
-                  UTP Guide
-                </p>
-                <p className="mt-4 text-sm leading-6 text-slate-600 animate-fade-up animate-delay-700">
-                  Recopilación de guías, fechas, carreras y becas oficiales de
-                  la UTP.
+                <p className="text-xs uppercase tracking-[0.24em] text-slate-500">Recursos</p>
+                <p className="mt-3 text-4xl font-black text-slate-950">UTP Guide</p>
+                <p className="mt-4 text-sm leading-6 text-slate-600">
+                  Recopilación de guías, fechas, carreras y becas oficiales de la UTP.
                 </p>
                 <a
                   href="https://www.utp.edu.pe/guias-del-estudiante-de-2026-i"
@@ -224,17 +148,12 @@ export default function ResourcesPage() {
               </div>
             </div>
             <div className="rounded-[2.5rem] bg-gradient-to-br from-red-600 via-rose-600 to-orange-500 p-8 shadow-[0_35px_100px_rgba(220,38,38,0.22)] text-white animate-fade-up animate-delay-600 transition-transform duration-500 hover:-translate-y-1 hover:shadow-[0_40px_110px_rgba(220,38,38,0.28)]">
-              <div className="flex h-14 w-14 items-center justify-center rounded-3xl bg-white/10 text-2xl">
-                ✨
-              </div>
+              <div className="flex h-14 w-14 items-center justify-center rounded-3xl bg-white/10 text-2xl">✨</div>
               <div className="mt-6">
-                <p className="text-xs uppercase tracking-[0.24em] text-red-100">
-                  Éxito
-                </p>
+                <p className="text-xs uppercase tracking-[0.24em] text-red-100">Éxito</p>
                 <p className="mt-3 text-4xl font-black">UTP en tu futuro</p>
                 <p className="mt-4 text-sm leading-6 text-red-100/90">
-                  Prepárate para un camino más claro con contenidos diseñados
-                  para tus intereses y metas.
+                  Prepárate para un camino más claro con contenidos diseñados para tus intereses y metas.
                 </p>
               </div>
             </div>
@@ -249,15 +168,9 @@ export default function ResourcesPage() {
               key={card.title}
               className={`overflow-hidden rounded-[2rem] border border-white/70 bg-white/90 shadow-[0_24px_90px_rgba(220,38,38,0.08)] transition-transform hover:-translate-y-1 hover:shadow-[0_24px_90px_rgba(220,38,38,0.14)] animate-fade-up animate-delay-${(idx + 1) * 100}`}
             >
-              <img
-                src={card.image}
-                alt={card.title}
-                className="h-56 w-full object-cover"
-              />
+              <img src={card.image} alt={card.title} className="h-56 w-full object-cover" />
               <CardContent className="p-6">
-                <CardTitle className="text-xl font-semibold text-slate-950">
-                  {card.title}
-                </CardTitle>
+                <CardTitle className="text-xl font-semibold text-slate-950">{card.title}</CardTitle>
                 <CardDescription className="mt-3 text-sm leading-6 text-slate-600">
                   {card.description}
                 </CardDescription>
@@ -286,9 +199,7 @@ export default function ResourcesPage() {
                 <div className="flex h-14 w-14 items-center justify-center rounded-3xl bg-red-50 text-2xl">
                   {resource.icon}
                 </div>
-                <CardTitle className="mt-6 text-xl font-semibold text-slate-950">
-                  {resource.title}
-                </CardTitle>
+                <CardTitle className="mt-6 text-xl font-semibold text-slate-950">{resource.title}</CardTitle>
                 <CardDescription className="mt-3 text-sm leading-6 text-slate-600">
                   {resource.description}
                 </CardDescription>
@@ -308,12 +219,8 @@ export default function ResourcesPage() {
               <div className="flex h-14 w-14 items-center justify-center rounded-3xl bg-rose-100 text-rose-700 text-2xl">
                 {service.icon}
               </div>
-              <h3 className="mt-6 text-xl font-bold text-slate-950">
-                {service.title}
-              </h3>
-              <p className="mt-3 text-sm leading-6 text-slate-600">
-                {service.detail}
-              </p>
+              <h3 className="mt-6 text-xl font-bold text-slate-950">{service.title}</h3>
+              <p className="mt-3 text-sm leading-6 text-slate-600">{service.detail}</p>
             </div>
           ))}
         </div>

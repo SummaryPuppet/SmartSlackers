@@ -1,6 +1,7 @@
 "use client";
 
-import Navbar from "../../components/Navbar";
+import Navbar from "@/components/Navbar";
+
 import {
   Card,
   CardContent,
@@ -39,13 +40,8 @@ export default function AdmissionPage() {
 
   return (
     <main className="relative min-h-screen overflow-hidden bg-[radial-gradient(circle_at_top_left,rgba(220,38,38,0.16),transparent_30%),radial-gradient(circle_at_top_right,rgba(244,63,94,0.14),transparent_26%),linear-gradient(180deg,#fff5f5_0%,#fdf2f2_100%)] text-slate-950">
-      <div className="pointer-events-none absolute inset-0 overflow-hidden">
-        <div className="absolute -left-32 top-20 h-80 w-80 rounded-full bg-red-300/30 blur-3xl" />
-        <div className="absolute -right-28 top-24 h-96 w-96 rounded-full bg-rose-300/25 blur-3xl" />
-        <div className="absolute bottom-0 left-1/2 h-96 w-96 -translate-x-1/2 rounded-full bg-orange-300/25 blur-3xl" />
-      </div>
-
-      <Navbar />
+          {/* Navbar compartido — incluye menú de avatar con Ver perfil y Cerrar sesión */}
+          <Navbar />
 
       <section className="relative z-10 mx-auto w-full max-w-7xl px-6 py-12 lg:px-8 lg:py-20 animate-fade-up">
         <div className="grid gap-12 lg:grid-cols-[1.05fr_0.95fr] items-center">
