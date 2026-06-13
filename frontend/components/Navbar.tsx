@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { onAuthStateChanged, User } from "firebase/auth";
 import { doc, getDoc } from "firebase/firestore";
@@ -20,13 +20,9 @@ const NAV_LINKS = [
 ];
 
 type NavbarProps = {
-  // "light" = white glass (main pages), "dark" = black glass (game pages)
   variant?: "light" | "dark";
-  // When set: hides nav links and shows this text as the page title (game mode)
   title?: string;
-  // Back link shown to the left of the logo when in game/sub-page mode
   backHref?: string;
-  // Right-side slot for game-specific content (score bar, etc.)
   rightSlot?: React.ReactNode;
 };
 
@@ -39,9 +35,12 @@ export default function Navbar({
   const pathname = usePathname();
   const router = useRouter();
   const [userName, setUserName] = useState("");
+  const [userEmail, setUserEmail] = useState("");
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [avatarMenuOpen, setAvatarMenuOpen] = useState(false);
+  const avatarRef = useRef<HTMLDivElement>(null);
 
   const displayName = userName || user?.displayName || user?.email?.split("@")[0] || "Usuario";
 
@@ -52,9 +51,16 @@ export default function Navbar({
         setLoading(false);
         return;
       }
+      setUserEmail(fbUser.email || "");
       try {
-        const snap = await getDoc(doc(db, "Usuarios", fbUser.uid));
-        if (snap.exists()) setUserName(snap.data().nombre || "");
+        // Busca en ambas colecciones por compatibilidad
+        for (const col of ["Usuarios", "usuarios"]) {
+          const snap = await getDoc(doc(db, col, fbUser.uid));
+          if (snap.exists()) {
+            setUserName(snap.data().nombre || "");
+            break;
+          }
+        }
       } catch {
         // graceful — user info is display-only
       } finally {
@@ -64,7 +70,20 @@ export default function Navbar({
     return () => unsub();
   }, []);
 
+  // Cierra el menú del avatar al hacer clic fuera
+  useEffect(() => {
+    if (!avatarMenuOpen) return;
+    const handleClickOutside = (e: MouseEvent) => {
+      if (avatarRef.current && !avatarRef.current.contains(e.target as Node)) {
+        setAvatarMenuOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [avatarMenuOpen]);
+
   const handleLogout = async () => {
+    setAvatarMenuOpen(false);
     await logout();
     router.push("/login");
   };
@@ -163,22 +182,59 @@ export default function Navbar({
             </div>
           ) : (
             <>
-              {user && (
+              {user ? (
                 <>
-                  <div className="hidden md:flex flex-col text-right leading-none">
-                    <span className={`text-xs font-semibold ${brandName}`}>{displayName}</span>
+                  {/* Texto "Bienvenido / email" — igual al diseño original pero con más info */}
+                  <div className="hidden md:flex flex-col text-right leading-none mr-1">
+                    <span className={`text-xs font-semibold ${brandName}`}>
+                      Bienvenido
+                    </span>
+                    <span className={`text-[10px] ${brandSub}`}>{userEmail}</span>
                   </div>
-                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-red-600 to-rose-500 text-white text-xs font-bold">
-                    {displayName.charAt(0).toUpperCase()}
+
+                  {/* Círculo rojo con inicial — al presionar abre el menú */}
+                  <div className="relative" ref={avatarRef}>
+                    <button
+                      type="button"
+                      onClick={() => setAvatarMenuOpen((v) => !v)}
+                      className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-red-600 to-rose-500 text-white text-xs font-bold shadow shadow-red-500/30 transition-transform hover:scale-105"
+                    >
+                      {displayName.charAt(0).toUpperCase()}
+                    </button>
+
+                    {/* Menú desplegable del avatar */}
+                    <AnimatePresence>
+                      {avatarMenuOpen && (
+                        <motion.div
+                          initial={{ opacity: 0, scale: 0.95, y: -4 }}
+                          animate={{ opacity: 1, scale: 1, y: 0 }}
+                          exit={{ opacity: 0, scale: 0.95, y: -4 }}
+                          transition={{ duration: 0.15 }}
+                          className="absolute right-0 top-11 z-50 w-44 rounded-2xl border border-slate-200 bg-white p-1.5 shadow-xl"
+                        >
+                          <button
+                            type="button"
+                            className="w-full rounded-xl px-4 py-2.5 text-left text-sm font-medium text-slate-700 transition hover:bg-slate-100"
+                            onClick={() => {
+                              setAvatarMenuOpen(false);
+                              router.push("/perfil");
+                            }}
+                          >
+                            Ver perfil
+                          </button>
+                          <button
+                            type="button"
+                            className="mt-1 w-full rounded-xl px-4 py-2.5 text-left text-sm font-medium text-red-600 transition hover:bg-red-50"
+                            onClick={handleLogout}
+                          >
+                            Cerrar sesión
+                          </button>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
                   </div>
-                  <button
-                    onClick={handleLogout}
-                    className={`hidden sm:inline-flex text-xs transition border rounded-lg px-2.5 py-1.5 ${logoutStyle}`}
-                  >
-                    Salir
-                  </button>
                 </>
-              )}
+              ) : null}
             </>
           )}
 
@@ -244,14 +300,23 @@ export default function Navbar({
                 </a>
               ))}
               {user && (
-                <button
-                  onClick={handleLogout}
-                  className={`flex rounded-xl px-3 py-2.5 text-sm font-medium text-left transition-colors ${
-                    isDark ? "text-white/50 hover:bg-white/10" : "text-slate-500 hover:bg-slate-50"
-                  }`}
-                >
-                  Cerrar sesión
-                </button>
+                <>
+                  <a
+                    href="/perfil"
+                    onClick={() => setMenuOpen(false)}
+                    className={`flex rounded-xl px-3 py-2.5 text-sm font-medium transition-colors ${mobileItemDefault}`}
+                  >
+                    Ver perfil
+                  </a>
+                  <button
+                    onClick={() => { setMenuOpen(false); handleLogout(); }}
+                    className={`flex rounded-xl px-3 py-2.5 text-sm font-medium text-left transition-colors ${
+                      isDark ? "text-white/50 hover:bg-white/10" : "text-slate-500 hover:bg-slate-50"
+                    }`}
+                  >
+                    Cerrar sesión
+                  </button>
+                </>
               )}
             </nav>
           </motion.div>
