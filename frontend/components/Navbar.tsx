@@ -37,16 +37,22 @@ export default function Navbar({
   const pathname = usePathname();
   const router = useRouter();
   const [userName, setUserName] = useState("");
+  const [loading, setLoading] = useState(true);
   const [menuOpen, setMenuOpen] = useState(false);
 
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, async (user) => {
-      if (!user) return;
+      if (!user) {
+        setLoading(false);
+        return;
+      }
       try {
         const snap = await getDoc(doc(db, "Usuarios", user.uid));
         if (snap.exists()) setUserName(snap.data().nombre || "");
       } catch {
         // graceful — user info is display-only
+      } finally {
+        setLoading(false);
       }
     });
     return () => unsub();
@@ -142,6 +148,13 @@ export default function Navbar({
         <div className="flex items-center gap-2 shrink-0">
           {rightSlot !== undefined ? (
             rightSlot
+          ) : loading ? (
+            /* ── Skeleton while Firebase resolves ── */
+            <div className="hidden sm:flex items-center gap-2 animate-pulse">
+              <div className={`hidden md:block h-3 w-20 rounded-full ${isDark ? "bg-white/15" : "bg-slate-200"}`} />
+              <div className={`h-8 w-8 rounded-full ${isDark ? "bg-white/15" : "bg-slate-200"}`} />
+              <div className={`h-7 w-12 rounded-lg ${isDark ? "bg-white/10" : "bg-slate-100"}`} />
+            </div>
           ) : (
             <>
               {userName && (
