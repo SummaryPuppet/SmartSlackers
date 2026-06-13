@@ -1,16 +1,22 @@
 "use client";
 
-import { useState, useRef, useEffect, useCallback } from "react";
-import Link from "next/link";
-import { motion } from "framer-motion";
-import { careers, type Career } from "@/lib/careers";
 import Navbar from "@/components/Navbar";
+import { careers, type Career } from "@/lib/careers";
+import {
+  showBadgeNotification,
+  trackBadgeEvent,
+} from "@/src/services/badgeService";
 import { onAuthStateChanged } from "firebase/auth";
-import { auth } from "../../src/firebase/config";
-import { db } from "../../src/firebase/config";
-import { doc, getDoc, setDoc, deleteDoc, serverTimestamp } from "firebase/firestore";
-import { doc, getDoc, setDoc, serverTimestamp } from "firebase/firestore";
-import { trackBadgeEvent, showBadgeNotification } from "@/src/services/badgeService";
+import {
+  deleteDoc,
+  doc,
+  getDoc,
+  serverTimestamp,
+  setDoc,
+} from "firebase/firestore";
+import { motion } from "framer-motion";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { auth, db } from "../../src/firebase/config";
 
 type Message = {
   role: "user" | "assistant";
@@ -22,7 +28,8 @@ type MentorInfo = {
   title: string;
 };
 
-const MENTOR_API_URL = process.env.NEXT_PUBLIC_MENTOR_API_URL || "http://127.0.0.1:8000";
+const MENTOR_API_URL =
+  process.env.NEXT_PUBLIC_MENTOR_API_URL || "http://127.0.0.1:8000";
 
 const MENTOR_CAREERS = [
   {
@@ -120,7 +127,12 @@ function ConnectionError({
           <motion.div
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
-            transition={{ type: "spring", stiffness: 200, damping: 12, delay: 0.15 }}
+            transition={{
+              type: "spring",
+              stiffness: 200,
+              damping: 12,
+              delay: 0.15,
+            }}
             className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-red-100"
           >
             <svg
@@ -145,7 +157,8 @@ function ConnectionError({
 
           {/* Description */}
           <p className="mt-1.5 text-xs leading-relaxed text-slate-500">
-            {message || "Verifica que el backend esté corriendo e intenta de nuevo."}
+            {message ||
+              "Verifica que el backend esté corriendo e intenta de nuevo."}
           </p>
 
           {/* Retry button */}
@@ -285,11 +298,7 @@ function ClearChatModal({
   );
 }
 
-function CareerSelector({
-  onSelect,
-}: {
-  onSelect: (id: string) => void;
-}) {
+function CareerSelector({ onSelect }: { onSelect: (id: string) => void }) {
   const selectedCareer = (id: string) => {
     onSelect(id);
   };
@@ -455,10 +464,10 @@ export default function MentorPage() {
           messages: msgs,
           updatedAt: serverTimestamp(),
         },
-        { merge: true }
+        { merge: true },
       );
     },
-    [userId]
+    [userId],
   );
 
   const loadChatHistory = useCallback(
@@ -472,7 +481,7 @@ export default function MentorPage() {
       }
       return [];
     },
-    [userId]
+    [userId],
   );
 
   const clearChat = useCallback(async () => {
@@ -497,99 +506,104 @@ export default function MentorPage() {
     }
   }, [started]);
 
-  const startInterview = useCallback(async (careerId: string) => {
-    setSelectedCareerId(careerId);
-    setStarted(true);
-    setIsLoading(true);
-    setConnectionError(null);
-    setIsConnected(null);
+  const startInterview = useCallback(
+    async (careerId: string) => {
+      setSelectedCareerId(careerId);
+      setStarted(true);
+      setIsLoading(true);
+      setConnectionError(null);
+      setIsConnected(null);
 
-    try {
-      const existingMessages = await loadChatHistory(careerId);
+      try {
+        const existingMessages = await loadChatHistory(careerId);
 
-      if (existingMessages.length > 0) {
-        setMessages(existingMessages);
+        if (existingMessages.length > 0) {
+          setMessages(existingMessages);
+          setIsConnected(true);
+          setIsLoading(false);
+          return;
+        }
+
+        const initialUserMessage: Message = {
+          role: "user",
+          content:
+            "Hola, estoy listo para comenzar la entrevista. Por favor preséntate y empecemos.",
+        };
+
+        const res = await fetch(`${MENTOR_API_URL}/api/mentor`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            messages: [initialUserMessage],
+            careerId,
+          }),
+        });
+
+        if (!res.ok) {
+          setIsConnected(false);
+          throw new Error(
+            "El servidor respondió con un error. Verifica que el backend esté activo.",
+          );
+        }
+
         setIsConnected(true);
-        setIsLoading(false);
-        return;
-      }
+        const reader = res.body!.getReader();
+        const decoder = new TextDecoder();
+        let assistantContent = "";
+        let mentorSet = false;
 
-      const initialUserMessage: Message = {
-        role: "user",
-        content:
-          "Hola, estoy listo para comenzar la entrevista. Por favor preséntate y empecemos.",
-      };
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
 
-      const res = await fetch(`${MENTOR_API_URL}/api/mentor`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          messages: [initialUserMessage],
-          careerId,
-        }),
-      });
+          const text = decoder.decode(value);
+          const lines = text.split("\n");
 
-      if (!res.ok) {
-        setIsConnected(false);
-        throw new Error("El servidor respondió con un error. Verifica que el backend esté activo.");
-      }
+          for (const line of lines) {
+            if (!line.startsWith("data: ")) continue;
+            const data = line.slice(6);
+            if (data === "[DONE]") break;
 
-      setIsConnected(true);
-      const reader = res.body!.getReader();
-      const decoder = new TextDecoder();
-      let assistantContent = "";
-      let mentorSet = false;
-
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-
-        const text = decoder.decode(value);
-        const lines = text.split("\n");
-
-        for (const line of lines) {
-          if (!line.startsWith("data: ")) continue;
-          const data = line.slice(6);
-          if (data === "[DONE]") break;
-
-          try {
-            const parsed = JSON.parse(data);
-            if (parsed.mentor && !mentorSet) {
-              setMentorInfo(parsed.mentor);
-              mentorSet = true;
-            } else if (parsed.content) {
-              assistantContent += parsed.content;
-              setMessages([{ role: "assistant", content: assistantContent }]);
-            } else if (parsed.error) {
-              throw new Error(parsed.error);
+            try {
+              const parsed = JSON.parse(data);
+              if (parsed.mentor && !mentorSet) {
+                setMentorInfo(parsed.mentor);
+                mentorSet = true;
+              } else if (parsed.content) {
+                assistantContent += parsed.content;
+                setMessages([{ role: "assistant", content: assistantContent }]);
+              } else if (parsed.error) {
+                throw new Error(parsed.error);
+              }
+            } catch {
+              // skip malformed lines
             }
-          } catch {
-            // skip malformed lines
           }
         }
-      }
 
-      if (!assistantContent) {
-        throw new Error("El mentor no devolvió una respuesta válida.");
-      }
+        if (!assistantContent) {
+          throw new Error("El mentor no devolvió una respuesta válida.");
+        }
 
-      const finalMessages: Message[] = [
-        initialUserMessage,
-        { role: "assistant", content: assistantContent },
-      ];
-      await saveChatHistory(careerId, finalMessages);
-    } catch (error) {
-      setIsConnected(false);
-      const errorMsg =
-        error instanceof Error
-          ? error.message
-          : "Error desconocido al conectar con el mentor.";
-      setConnectionError(errorMsg);
-      setMessages([]);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [loadChatHistory, saveChatHistory]);
+        const finalMessages: Message[] = [
+          initialUserMessage,
+          { role: "assistant", content: assistantContent },
+        ];
+        await saveChatHistory(careerId, finalMessages);
+      } catch (error) {
+        setIsConnected(false);
+        const errorMsg =
+          error instanceof Error
+            ? error.message
+            : "Error desconocido al conectar con el mentor.";
+        setConnectionError(errorMsg);
+        setMessages([]);
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [loadChatHistory, saveChatHistory],
+  );
 
   const sendMessage = useCallback(async () => {
     if (!input.trim() || isLoading || !selectedCareerId) return;
@@ -668,7 +682,9 @@ export default function MentorPage() {
           const { newBadges } = await trackBadgeEvent(user.uid, "mentor_used");
           newBadges.forEach((b) => showBadgeNotification(b));
         }
-      } catch { /* silent */ }
+      } catch {
+        /* silent */
+      }
     } catch (error) {
       setIsConnected(false);
       const errorMsg =
@@ -810,8 +826,7 @@ export default function MentorPage() {
                 {careerInfo?.emoji || "🤖"}
               </div>
               <h2 className="text-lg font-bold text-slate-900">
-                Entrevista de{" "}
-                {careerInfo?.title || selectedCareerId}
+                Entrevista de {careerInfo?.title || selectedCareerId}
               </h2>
               <p className="mt-1 max-w-sm text-sm text-slate-500">
                 Tu mentor te dará la bienvenida. Responde con naturalidad como
