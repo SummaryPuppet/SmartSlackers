@@ -1,9 +1,42 @@
 "use client";
 
 import { useState } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { login, register } from "../../src/services/authService";
 import { useRouter } from "next/navigation";
+
+function SuccessModal({ message, onContinue }: { message: string; onContinue: () => void }) {
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm px-4"
+    >
+      <motion.div
+        initial={{ scale: 0.9, opacity: 0, y: 20 }}
+        animate={{ scale: 1, opacity: 1, y: 0 }}
+        exit={{ scale: 0.9, opacity: 0, y: 20 }}
+        transition={{ type: "spring", damping: 25, stiffness: 300 }}
+        className="w-full max-w-sm rounded-2xl bg-white p-6 shadow-2xl"
+      >
+        <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-green-100 mx-auto">
+          <svg className="h-6 w-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+          </svg>
+        </div>
+        <h3 className="text-lg font-bold text-slate-900 text-center">¡Éxito!</h3>
+        <p className="mt-2 text-sm text-slate-500 text-center">{message}</p>
+        <button
+          onClick={onContinue}
+          className="mt-6 w-full rounded-xl bg-gradient-to-br from-red-500 to-rose-500 px-4 py-2.5 text-sm font-medium text-white shadow-lg shadow-red-500/25 transition hover:shadow-xl"
+        >
+          Continuar
+        </button>
+      </motion.div>
+    </motion.div>
+  );
+}
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -11,55 +44,56 @@ export default function LoginPage() {
   const [isLogin, setIsLogin] = useState(true);
   const [name, setName] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [error, setError] = useState("");
+  const [showSuccess, setShowSuccess] = useState(false);
+  const [successMessage, setSuccessMessage] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
   const router = useRouter();
 
 const handleRegister = async () => {
-  try {
+  setError("");
 
-    // Validar nombre
     if (!name.trim()) {
-      alert("Ingresa tu nombre");
+      setError("Ingresa tu nombre");
       return;
     }
 
-    // Validar contraseñas
     if (password !== confirmPassword) {
-      alert("Las contraseñas no coinciden");
+      setError("Las contraseñas no coinciden");
       return;
     }
 
-    // Validar longitud mínima
     if (password.length < 6) {
-      alert("La contraseña debe tener al menos 6 caracteres");
+      setError("La contraseña debe tener al menos 6 caracteres");
       return;
     }
 
-      const result = await register(
-      email,
-      password,
-      name
-    );
-
-    document.cookie = `vocatio_session=${result.user.uid}; path=/; max-age=${7 * 24 * 60 * 60}; SameSite=Lax`;
-
-    alert("Usuario registrado correctamente");
-
-    router.push("/");
-
-  } catch (error: any) {
-    alert(error.message);
-  }
+    setIsLoading(true);
+    try {
+      const result = await register(email, password, name);
+      document.cookie = `vocatio_session=${result.user.uid}; path=/; max-age=${7 * 24 * 60 * 60}; SameSite=Lax`;
+      setSuccessMessage("Usuario registrado correctamente");
+      setShowSuccess(true);
+    } catch (error: any) {
+      setError(error.message);
+    } finally {
+      setIsLoading(false);
+    }
 };
 
   const handleLogin = async () => {
+    setError("");
+    setIsLoading(true);
     try {
       const result = await login(email, password);
       document.cookie = `vocatio_session=${result.user.uid}; path=/; max-age=${7 * 24 * 60 * 60}; SameSite=Lax`;
-      alert("Inicio de sesión exitoso");
-      router.push("/");
+      setSuccessMessage("Inicio de sesión exitoso");
+      setShowSuccess(true);
     } catch (error: any) {
-      alert(error.message);
+      setError(error.message);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -202,12 +236,12 @@ const handleRegister = async () => {
               Nombre
             </label>
 
-            <input
-              type="text"
-              placeholder="Tu nombre"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              className="
+              <input
+                type="text"
+                placeholder="Tu nombre"
+                value={name}
+                onChange={(e) => { setName(e.target.value); setError(""); }}
+                className="
                 w-full
                 px-4
                 py-3
@@ -231,7 +265,7 @@ const handleRegister = async () => {
                 type="email"
                 placeholder="correo@ejemplo.com"
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={(e) => { setEmail(e.target.value); setError(""); }}
                 className="
                   w-full
                   px-4
@@ -256,7 +290,7 @@ const handleRegister = async () => {
                 type="password"
                 placeholder="********"
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                onChange={(e) => { setPassword(e.target.value); setError(""); }}
                 className="
                   w-full
                   px-4
@@ -285,7 +319,7 @@ const handleRegister = async () => {
             type="password"
             placeholder="********"
             value={confirmPassword}
-            onChange={(e) => setConfirmPassword(e.target.value)}
+            onChange={(e) => { setConfirmPassword(e.target.value); setError(""); }}
             className="
               w-full
               px-4
@@ -301,10 +335,27 @@ const handleRegister = async () => {
         </motion.div>
       )}
 
+      <AnimatePresence>
+        {error && (
+          <motion.div
+            initial={{ opacity: 0, y: -5, height: 0 }}
+            animate={{ opacity: 1, y: 0, height: "auto" }}
+            exit={{ opacity: 0, y: -5, height: 0 }}
+            className="flex items-center gap-2 rounded-lg bg-red-50 border border-red-200 px-3 py-2"
+          >
+            <svg className="h-4 w-4 flex-shrink-0 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <span className="text-sm text-red-600">{error}</span>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       <motion.button
         whileHover={{ scale: 1.03 }}
         whileTap={{ scale: 0.97 }}
         onClick={isLogin ? handleLogin : handleRegister}
+        disabled={isLoading}
         className="
           w-full
           bg-red-800
@@ -315,9 +366,21 @@ const handleRegister = async () => {
           font-semibold
           transition
           shadow-lg
+          disabled:opacity-50 disabled:cursor-not-allowed
+          flex items-center justify-center gap-2
         "
       >
-        {isLogin ? "Iniciar Sesión" : "Crear Cuenta"}
+        {isLoading ? (
+          <>
+            <svg className="h-5 w-5 animate-spin" fill="none" viewBox="0 0 24 24">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+            </svg>
+            {isLogin ? "Iniciando..." : "Creando cuenta..."}
+          </>
+        ) : (
+          isLogin ? "Iniciar Sesión" : "Crear Cuenta"
+        )}
       </motion.button>
 
           <div className="text-center mt-4">
@@ -328,7 +391,7 @@ const handleRegister = async () => {
           </span>
 
           <button
-            onClick={() => setIsLogin(false)}
+            onClick={() => { setIsLogin(false); setError(""); }}
             className="ml-2 text-red-700 font-semibold hover:underline"
           >
             Registrarse
@@ -341,7 +404,7 @@ const handleRegister = async () => {
           </span>
 
           <button
-            onClick={() => setIsLogin(true)}
+            onClick={() => { setIsLogin(true); setError(""); }}
             className="ml-2 text-red-700 font-semibold hover:underline"
           >
             Iniciar sesión
@@ -359,6 +422,15 @@ const handleRegister = async () => {
         </motion.div>
 
       </section>
+
+      <AnimatePresence>
+        {showSuccess && (
+          <SuccessModal
+            message={successMessage}
+            onContinue={() => router.push("/")}
+          />
+        )}
+      </AnimatePresence>
 
     </main>
   );
