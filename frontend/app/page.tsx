@@ -58,7 +58,7 @@ export default function Home() {
               <p className="text-lg font-extrabold tracking-tight text-slate-950">
                 Vocatio
               </p>
-              <p className="text-xs text-slate-500">Tu camino, tu futuro.</p>
+              <p className="text-xs text-slate-500">Tu camino, tu futuro. </p>
             </div>
           </div>
 
