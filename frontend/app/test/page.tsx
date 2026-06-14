@@ -30,7 +30,10 @@ export default function TestPage() {
       if (Array.isArray(data.answers) && data.answers.length > 0 && data.current < 10) {
         setSavedSession(data);
       }
-    } catch { /* ignore */ }
+    } catch (err) {
+      console.error("[TestPage] Failed to parse saved session:", err);
+      localStorage.removeItem(TEST_SESSION_KEY);
+    }
   }, []);
 
   // Carga avatar del usuario para el banner "en progreso"
@@ -39,7 +42,7 @@ export default function TestPage() {
       if (!user) return;
       loadAvatar(user.uid)
         .then((saved) => { if (saved) setAvatarConfig(saved.config); })
-        .catch(() => {});
+        .catch((err) => console.error("[TestPage] Failed to load avatar:", err));
     });
     return () => unsub();
   }, []);
