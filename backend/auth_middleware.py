@@ -12,8 +12,8 @@ class APIKeyMiddleware(BaseHTTPMiddleware):
         self.api_key = api_key or os.getenv("API_SECRET_KEY")
     
     async def dispatch(self, request: Request, call_next):
-        # Skip health check and docs
-        if request.url.path in ["/api/health", "/docs", "/openapi.json"]:
+        # Skip health check, docs, and CORS preflight
+        if request.url.path in ["/api/health", "/docs", "/openapi.json"] or request.method == "OPTIONS":
             return await call_next(request)
         
         # Check for API key in header
