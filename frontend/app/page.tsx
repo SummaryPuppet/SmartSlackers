@@ -4,7 +4,6 @@ import Navbar from "@/components/Navbar";
 import MiniMentorWidget from "@/app/components/MiniMentorWidget";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -352,13 +351,23 @@ export default function Home() {
             </p>
 
             <div className="mt-8 flex flex-col gap-4 sm:flex-row animate-fade-up animate-delay-500">
-              <Button
-                size="lg"
-                className="bg-linear-to-r from-red-600 via-rose-600 to-orange-500 shadow-[0_18px_45px_rgba(220,38,38,0.35)] transition-all hover:brightness-110 hover:scale-105"
+              <motion.button
+                whileHover={{ scale: 1.07 }}
+                whileTap={{ scale: 0.95 }}
+                animate={{
+                  scale: [1, 1.03, 1],
+                  boxShadow: [
+                    "0 18px 45px rgba(220,38,38,0.35)",
+                    "0 22px 55px rgba(220,38,38,0.5)",
+                    "0 18px 45px rgba(220,38,38,0.35)",
+                  ],
+                }}
+                transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
                 onClick={() => (window.location.href = "/test")}
+                className="inline-flex items-center justify-center rounded-2xl bg-linear-to-r from-red-600 via-rose-600 to-orange-500 px-10 py-5 text-xl font-bold text-white shadow-[0_18px_45px_rgba(220,38,38,0.35)] transition-all hover:brightness-110 cursor-pointer"
               >
-                {t("home.comenzarViaje")}
-              </Button>
+                {t("home.comenzarViaje")} →
+              </motion.button>
             </div>
 
             <div className="mt-10 flex flex-wrap items-center gap-4 text-sm text-slate-600 animate-fade-up animate-delay-600">

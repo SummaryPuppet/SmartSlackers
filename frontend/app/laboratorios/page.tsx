@@ -157,18 +157,6 @@ const LABS_BY_CAREER: Record<string, Lab[]> = {
       img: `${BASE}/descubre-utp/sites/consideracion/files/noticias/LAB%20DE%20ORGANIZACI%C3%93N%20Y%20FUNCI%C3%93N%20DEL%20CUERPO%20HUMANO_1%202.jpg`,
     },
   ],
-  "ingenieria-biomedica": [
-    {
-      nameKey: "labs.ingenieriaBiomedica.hospitalSimulado.name",
-      descKey: "labs.ingenieriaBiomedica.hospitalSimulado.desc",
-      img: `${BASE}/descubre-utp/sites/consideracion/files/noticias/HOSPITAL%20SIMULADO_1%202.jpg`,
-    },
-    {
-      nameKey: "labs.ingenieriaBiomedica.labMecatronica.name",
-      descKey: "labs.ingenieriaBiomedica.labMecatronica.desc",
-      img: `${BASE}/descubre-utp/sites/consideracion/files/imagenes/LAB.%20DE%20MECATR%C3%93NICA%201.jpg`,
-    },
-  ],
   derecho: [
     {
       nameKey: "labs.derecho.salaAudiencias.name",

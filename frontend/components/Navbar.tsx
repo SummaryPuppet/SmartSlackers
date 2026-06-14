@@ -24,12 +24,11 @@ const LANGUAGES: { locale: Locale; label: string; flag: string }[] = [
 
 const NAV_LINKS_TKEYS = [
   { tkey: "nav.inicio", href: "/" },
-  { tkey: "nav.test", href: "/test" },
   { tkey: "nav.carreras", href: "/carreras" },
+  { tkey: "nav.test", href: "/test" },
+  { tkey: "nav.mentor", href: "/mentor" },
   { tkey: "nav.simular", href: "/simular", badge: "NEW" },
   { tkey: "nav.comunidad", href: "/comunidad" },
-  { tkey: "nav.laboratorios", href: "/laboratorios" },
-  { tkey: "nav.mentor", href: "/mentor" },
   { tkey: "nav.recursos", href: "/recursos" },
 ];
 

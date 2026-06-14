@@ -389,11 +389,11 @@ function Carousel({ cards, t }: { cards: CareerCard[]; t: (key: string, params?:
         {cards.map((card, i) => {
           const isPlaceholder = !card.href;
           const Tag = isPlaceholder ? motion.div : motion.a;
-          const extra: Record<string, unknown> = {};
-          if (!isPlaceholder) { extra.href = card.href; extra.textDecoration = "none"; }
+          const anchorProps = isPlaceholder ? {} : { href: card.href };
           return (
           <Tag
             key={card.id}
+            {...anchorProps}
             initial={{ opacity: 0, y: 24 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: i * 0.06 }}
@@ -407,7 +407,7 @@ function Carousel({ cards, t }: { cards: CareerCard[]; t: (key: string, params?:
               border: `1.5px solid ${card.border}`,
               scrollSnapAlign: "start",
               cursor: isPlaceholder ? "default" : "pointer",
-              ...extra,
+              textDecoration: "none",
             }}
           >
             {/* Career-specific SVG layers */}

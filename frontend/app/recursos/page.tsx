@@ -22,6 +22,13 @@ export default function ResourcesPage() {
         "https://images.unsplash.com/photo-1504384308090-c894fdcc538d?auto=format&fit=crop&w=900&q=80",
     },
     {
+      title: t("recursos.laboratorios"),
+      description: t("recursos.laboratoriosDesc"),
+      href: "/laboratorios",
+      image:
+        "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?auto=format&fit=crop&w=900&q=80",
+    },
+    {
       title: t("recursos.admisionUtp"),
       description: t("recursos.admisionUtpDesc"),
       href: "/recursos/admision",

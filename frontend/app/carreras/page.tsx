@@ -485,19 +485,7 @@ function SimulatorPanel({
             {t("carreras.explorarOtra")}
           </motion.button>
         </div>
-        <motion.a
-          href={`/laboratorios?career=${career.id}`}
-          whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.97 }}
-          className="flex items-center justify-center gap-2 rounded-xl border py-2.5 text-sm font-semibold transition"
-          style={{
-            borderColor: career.color + "40",
-            color: career.color,
-            background: career.color + "08",
-          }}
-        >
-          {t("carreras.verLaboratorio")}
-        </motion.a>
+
       </div>
     </motion.div>
   );
@@ -729,19 +717,6 @@ function ComparePanel({
                 </div>
               </div>
 
-              {/* CTA */}
-              <div className="mt-3 flex gap-2">
-                <a
-                  href={`/laboratorios?career=${c.id}`}
-                  className="rounded-xl px-4 py-2 text-xs font-bold text-white transition hover:opacity-90 hover:scale-105 hover:shadow-lg"
-                  style={{
-                    background: `linear-gradient(135deg, ${c.color}, ${c.color}cc)`,
-                    boxShadow: `0 4px 12px ${c.color}25`,
-                  }}
-                >
-                  {t("carreras.verLaboratorio")}
-                </a>
-              </div>
             </div>
           );
         })}
