@@ -3,6 +3,7 @@
 import Navbar from "@/components/Navbar";
 import { AREAS, careers as staticCareers, type Career } from "@/lib/careers";
 import { apiFetch } from "@/lib/api";
+import { useTranslation } from "@/lib/i18n";
 import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useState, useCallback } from "react";
 import { collection, getDocs, query, where, limit } from "firebase/firestore";
@@ -106,11 +107,11 @@ function SalaryBar({ min, max }: { min: number; max: number }) {
   );
 }
 
-function OutlookBadge({ outlook }: { outlook: Career["outlook"] }) {
+function OutlookBadge({ outlook, t }: { outlook: Career["outlook"]; t: (key: string) => string }) {
   const map = {
-    Alta: { color: "#16a34a", bg: "#f0fdf4", label: "Demanda Alta" },
-    Media: { color: "#d97706", bg: "#fffbeb", label: "Demanda Media" },
-    Estable: { color: "#0891b2", bg: "#ecfeff", label: "Mercado Estable" },
+    Alta: { color: "#16a34a", bg: "#f0fdf4", label: t("carreras.demandaAlta") },
+    Media: { color: "#d97706", bg: "#fffbeb", label: t("carreras.demandaMedia") },
+    Estable: { color: "#0891b2", bg: "#ecfeff", label: t("carreras.mercadoEstable") },
   };
   const s = map[outlook];
   return (
@@ -129,7 +130,7 @@ function OutlookBadge({ outlook }: { outlook: Career["outlook"] }) {
 
 type TopPost = { userName: string; text: string; likeCount: number };
 
-function TopReview({ careerId, careerColor }: { careerId: string; careerColor: string }) {
+function TopReview({ careerId, careerColor, t }: { careerId: string; careerColor: string; t: (key: string) => string }) {
   const [post, setPost]     = useState<TopPost | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -177,7 +178,7 @@ function TopReview({ careerId, careerColor }: { careerId: string; careerColor: s
       <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-1.5">
           <span className="text-xs font-bold uppercase tracking-wide" style={{ color: careerColor }}>
-            ⭐ Reseña destacada
+            ⭐ {t("carreras.resenaDestacada")}
           </span>
         </div>
         <a
@@ -185,7 +186,7 @@ function TopReview({ careerId, careerColor }: { careerId: string; careerColor: s
           className="text-[11px] font-semibold transition-colors hover:underline"
           style={{ color: careerColor }}
         >
-          Ver más reseñas →
+          {t("carreras.verMasResenas")}
         </a>
       </div>
 
@@ -221,9 +222,11 @@ function TopReview({ careerId, careerColor }: { careerId: string; careerColor: s
 function SimulatorPanel({
   career,
   onClose,
+  t,
 }: {
   career: Career;
   onClose: () => void;
+  t: (key: string) => string;
 }) {
   const nowActivity = getNowActivity(career.dayInLife);
   const [activeTab, setActiveTab] = useState<"dia" | "datos">("dia");
@@ -270,7 +273,7 @@ function SimulatorPanel({
               >
                 {career.area}
               </span>
-              <OutlookBadge outlook={career.outlook} />
+              <OutlookBadge outlook={career.outlook} t={t} />
             </div>
           </div>
         </div>
@@ -300,7 +303,7 @@ function SimulatorPanel({
               className="text-xs font-semibold uppercase tracking-wide"
               style={{ color: career.color }}
             >
-              En este momento serías...
+              {t("carreras.enEsteMomento")}
             </p>
             <p className="mt-0.5 text-sm font-medium text-slate-800">
               {career.nowDoing}
@@ -315,7 +318,7 @@ function SimulatorPanel({
       {/* Tabs */}
       <div className="flex border-b border-slate-100 mt-4 px-6 gap-1">
         {(["dia", "datos"] as const).map((tab) => {
-          const labels = { dia: "📅 Día a día", datos: "📊 Datos clave" };
+          const labels = { dia: t("carreras.diaADia"), datos: t("carreras.datosClave") };
           return (
             <button
               key={tab}
@@ -398,7 +401,7 @@ function SimulatorPanel({
             >
               <div>
                 <p className="text-xs font-semibold uppercase tracking-wide text-slate-500 mb-2">
-                  Salario en Perú
+                  {t("carreras.salarioPeru")}
                 </p>
                 <p className="text-2xl font-black text-slate-900 mb-2">
                   {career.salary}
@@ -408,7 +411,7 @@ function SimulatorPanel({
 
               <div>
                 <p className="text-xs font-semibold uppercase tracking-wide text-slate-500 mb-2">
-                  Duración
+                  {t("carreras.duracion")}
                 </p>
                 <p className="text-lg font-bold text-slate-800">
                   {career.duration}
@@ -417,7 +420,7 @@ function SimulatorPanel({
 
               <div>
                 <p className="text-xs font-semibold uppercase tracking-wide text-slate-500 mb-2">
-                  Herramientas clave
+                  {t("carreras.herramientasClave")}
                 </p>
                 <div className="flex flex-wrap gap-2">
                   {career.tools.map((tool) => (
@@ -437,7 +440,7 @@ function SimulatorPanel({
 
               <div>
                 <p className="text-xs font-semibold uppercase tracking-wide text-slate-500 mb-2">
-                  Habilidades clave
+                  {t("carreras.habilidadesClave")}
                 </p>
                 <div className="flex flex-wrap gap-2">
                   {career.skills.map((skill) => (
@@ -456,7 +459,7 @@ function SimulatorPanel({
       </div>
 
       {/* Top community review */}
-      <TopReview careerId={career.id} careerColor={career.color} />
+      <TopReview careerId={career.id} careerColor={career.color} t={t} />
 
       {/* CTA */}
       <div className="px-6 pb-6 pt-2 flex flex-col gap-2">
@@ -471,7 +474,7 @@ function SimulatorPanel({
             }}
             onClick={() => (window.location.href = "/test")}
           >
-            Hacer el test vocacional →
+            {t("carreras.hacerTest")}
           </motion.button>
           <motion.button
             whileHover={{ scale: 1.02 }}
@@ -479,7 +482,7 @@ function SimulatorPanel({
             onClick={onClose}
             className="rounded-xl border border-red-100 px-4 py-3 text-sm font-medium text-slate-600 transition hover:bg-slate-50"
           >
-            Explorar otra
+            {t("carreras.explorarOtra")}
           </motion.button>
         </div>
         <motion.a
@@ -493,7 +496,7 @@ function SimulatorPanel({
             background: career.color + "08",
           }}
         >
-          🔬 Ver Laboratorio
+          {t("carreras.verLaboratorio")}
         </motion.a>
       </div>
     </motion.div>
@@ -507,6 +510,7 @@ function CareerCard({
   compareSelected,
   compareMode,
   compareIndex,
+  t,
 }: {
   career: Career;
   onClick: () => void;
@@ -514,6 +518,7 @@ function CareerCard({
   compareSelected?: boolean;
   compareMode?: boolean;
   compareIndex?: number;
+  t: (key: string) => string;
 }) {
   return (
     <motion.button
@@ -557,7 +562,7 @@ function CareerCard({
       </div>
 
       <div className="mt-3 flex items-center justify-between">
-        <OutlookBadge outlook={career.outlook} />
+        <OutlookBadge outlook={career.outlook} t={t} />
         <span className="text-xs text-slate-400">{career.duration}</span>
       </div>
 
@@ -587,9 +592,11 @@ function CareerCard({
 function ComparePanel({
   careers,
   onClose,
+  t,
 }: {
   careers: Career[];
   onClose: () => void;
+  t: (key: string, params?: Record<string, string | number>) => string;
 }) {
   const maxSalary = Math.max(...careers.map((c) => c.salaryMin));
 
@@ -609,8 +616,8 @@ function ComparePanel({
         >
           ✕
         </button>
-        <h2 className="text-xl font-black">⚡ Comparar Carreras</h2>
-        <p className="text-red-100 text-sm mt-1">{careers.length} carreras seleccionadas</p>
+        <h2 className="text-xl font-black">{t("carreras.compararCarreras")}</h2>
+        <p className="text-red-100 text-sm mt-1">{t("carreras.carrerasSeleccionadas", { count: careers.length })}</p>
       </div>
 
       {/* Careers stacked vertically — each career is a full-width card */}
@@ -642,7 +649,7 @@ function ComparePanel({
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
                 {/* Salary */}
                 <div className="rounded-xl bg-slate-50 p-3 transition hover:shadow-md hover:-translate-y-0.5">
-                  <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-400 mb-1">Salario</p>
+                  <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-400 mb-1">{t("carreras.salario")}</p>
                   <p className="text-sm font-black text-slate-900">{c.salary}</p>
                   <div className="mt-1.5 h-1.5 rounded-full bg-red-100 overflow-hidden">
                     <motion.div
@@ -657,19 +664,19 @@ function ComparePanel({
 
                 {/* Duration */}
                 <div className="rounded-xl bg-slate-50 p-3 transition hover:shadow-md hover:-translate-y-0.5">
-                  <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-400 mb-1">Duración</p>
+                  <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-400 mb-1">{t("carreras.duracion")}</p>
                   <p className="text-sm font-bold text-slate-800">{c.duration}</p>
                 </div>
 
                 {/* Outlook */}
                 <div className="rounded-xl bg-slate-50 p-3 transition hover:shadow-md hover:-translate-y-0.5">
-                  <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-400 mb-1">Demanda</p>
-                  <OutlookBadge outlook={c.outlook} />
+                  <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-400 mb-1">{t("carreras.demanda")}</p>
+                  <OutlookBadge outlook={c.outlook} t={t} />
                 </div>
 
                 {/* Skills */}
                 <div className="rounded-xl bg-slate-50 p-3 col-span-2 sm:col-span-3 lg:col-span-2 transition hover:shadow-md hover:-translate-y-0.5">
-                  <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-400 mb-1.5">Habilidades</p>
+                  <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-400 mb-1.5">{t("carreras.habilidades")}</p>
                   <div className="flex flex-wrap gap-1">
                     {c.skills.map((s) => (
                       <span
@@ -685,7 +692,7 @@ function ComparePanel({
 
                 {/* Tools */}
                 <div className="rounded-xl bg-slate-50 p-3 col-span-2 sm:col-span-3 transition hover:shadow-md hover:-translate-y-0.5">
-                  <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-400 mb-1.5">Herramientas</p>
+                  <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-400 mb-1.5">{t("carreras.herramientas")}</p>
                   <div className="flex flex-wrap gap-1">
                     {c.tools.map((t) => (
                       <span
@@ -700,14 +707,14 @@ function ComparePanel({
 
                 {/* Universities */}
                 <div className="rounded-xl bg-slate-50 p-3 col-span-2 sm:col-span-3 transition hover:shadow-md hover:-translate-y-0.5">
-                  <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-400 mb-1">Universidades</p>
+                  <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-400 mb-1">{t("carreras.universidades")}</p>
                   <p className="text-xs text-slate-600 leading-relaxed">{c.universities.join(", ")}</p>
                 </div>
               </div>
 
               {/* Day in life */}
               <div className="mt-3 rounded-xl border p-3 transition hover:shadow-md" style={{ borderColor: c.color + "25", background: c.color + "05" }}>
-                <p className="text-[10px] font-semibold uppercase tracking-wide mb-2" style={{ color: c.color }}>📅 Día a día</p>
+                <p className="text-[10px] font-semibold uppercase tracking-wide mb-2" style={{ color: c.color }}>{t("carreras.diaADia")}</p>
                 <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-1.5">
                   {c.dayInLife.map((item, i) => (
                     <div
@@ -737,7 +744,7 @@ function ComparePanel({
                     boxShadow: `0 4px 12px ${c.color}25`,
                   }}
                 >
-                  🔬 Ver Laboratorio
+                  {t("carreras.verLaboratorio")}
                 </a>
               </div>
             </div>
@@ -749,6 +756,7 @@ function ComparePanel({
 }
 
 export default function CarrerasPage() {
+  const { t } = useTranslation();
   const [search, setSearch] = useState("");
   const [area, setArea] = useState("Todos");
   const [selected, setSelected] = useState<Career | null>(null);
@@ -844,19 +852,17 @@ export default function CarrerasPage() {
           <div className="flex items-center justify-between flex-wrap gap-4">
             <div>
               <h2 className="text-2xl font-black sm:text-3xl">
-                Carreras UTP 🔭
+                {t("carreras.heroTitle")}
               </h2>
               <p className="mt-1 text-red-100 text-sm sm:text-base">
-                Explora todas las carreras que pueden existir en la Universidad Tecnológica del Perú.
-                Haz clic en cualquier carrera para ver cómo sería tu vida
-                profesional hoy mismo.
+                {t("carreras.heroDesc")}
               </p>
             </div>
             <div className="flex gap-4 text-center">
               {[
-                { n: careersList.length + "+", label: "Carreras" },
-                { n: "Real", label: "Salarios reales" },
-                { n: "Live", label: "Sim. en tiempo real" },
+                { n: careersList.length + "+", label: t("carreras.carrerasCount") },
+                { n: "Real", label: t("carreras.salariosReales") },
+                { n: "Live", label: t("carreras.simTiempoReal") },
               ].map((s) => (
                 <div
                   key={s.label}
@@ -920,7 +926,7 @@ export default function CarrerasPage() {
                   }
             }
           >
-            ⚡ Comparar
+            ⚡ {t("carreras.comparar")}
           </motion.button>
         </div>
 
@@ -934,9 +940,9 @@ export default function CarrerasPage() {
               <div className="flex flex-col items-center justify-center py-20 text-slate-400">
                 <span className="text-5xl mb-3">🔍</span>
                 <p className="text-lg font-semibold">
-                  No encontramos esa carrera
+                  {t("carreras.noEncontramos")}
                 </p>
-                <p className="text-sm mt-1">Intenta con otro término</p>
+                <p className="text-sm mt-1">{t("carreras.intentOtroTermino")}</p>
               </div>
             ) : (
               <motion.div
@@ -961,6 +967,7 @@ export default function CarrerasPage() {
                           compareSelected={compareIdx !== -1}
                           compareMode={compareMode}
                           compareIndex={compareIdx !== -1 ? compareIdx : undefined}
+                          t={t}
                           onClick={() => {
                             if (compareMode) {
                               handleCompareToggle(career);
@@ -986,6 +993,7 @@ export default function CarrerasPage() {
                 <SimulatorPanel
                   career={selected}
                   onClose={() => setSelected(null)}
+                  t={t}
                 />
               </div>
             )}
@@ -1016,6 +1024,7 @@ export default function CarrerasPage() {
                     setCompareList([]);
                     setCompareMode(false);
                   }}
+                  t={t}
                 />
               </div>
             </motion.div>
@@ -1060,7 +1069,7 @@ export default function CarrerasPage() {
                 <div className="h-8 w-px bg-slate-200" />
 
                 <p className="text-sm font-semibold text-slate-600 whitespace-nowrap">
-                  {compareList.length}/3 seleccionadas
+                  {t("carreras.seleccionadas", { count: compareList.length })}
                 </p>
 
                 <motion.button
@@ -1076,7 +1085,7 @@ export default function CarrerasPage() {
                     boxShadow: compareList.length >= 2 ? "0 4px 16px rgba(124,58,237,0.3)" : "none",
                   }}
                 >
-                  Comparar ⚡
+                  {t("carreras.compararBtn")}
                 </motion.button>
 
                 <button
@@ -1086,7 +1095,7 @@ export default function CarrerasPage() {
                   }}
                   className="text-slate-400 hover:text-slate-600 transition text-sm"
                 >
-                  Limpiar
+                  {t("carreras.limpiar")}
                 </button>
               </div>
             </motion.div>
@@ -1103,7 +1112,7 @@ export default function CarrerasPage() {
               className="mt-8 text-center text-slate-400"
             >
               <p className="text-sm">
-                👆 Haz clic en cualquier carrera para activar el simulador
+                {t("carreras.hazClicActivar")}
               </p>
             </motion.div>
           )}
@@ -1115,7 +1124,7 @@ export default function CarrerasPage() {
               className="mt-8 text-center text-slate-400"
             >
               <p className="text-sm">
-                ⚡ Selecciona entre 2 y 3 carreras para compararlas lado a lado
+                {t("carreras.seleccionaComparar")}
               </p>
             </motion.div>
           )}

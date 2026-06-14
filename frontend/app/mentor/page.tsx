@@ -31,47 +31,61 @@ type MentorInfo = {
   title: string;
 };
 
-const MENTOR_CAREERS = [
-  {
-    id: "software",
-    icon: "💻",
-    color: "#dc2626",
-    tagline: "Entrevista técnica de ingeniería de software",
-  },
-  {
-    id: "medicina",
-    icon: "🩺",
-    color: "#059669",
-    tagline: "Entrevista de admisión a medicina",
-  },
-  {
-    id: "derecho",
-    icon: "⚖️",
-    color: "#b45309",
-    tagline: "Entrevista de admisión a derecho",
-  },
-  {
-    id: "negocios",
-    icon: "📊",
-    color: "#7c3aed",
-    tagline: "Entrevista de selección empresarial",
-  },
-  {
-    id: "psicologia",
-    icon: "🧠",
-    color: "#7c3aed",
-    tagline: "Entrevista de admisión a psicología",
-  },
-  {
-    id: "ingenieria",
-    icon: "🏗️",
-    color: "#dc2626",
-    tagline: "Entrevista de admisión a ingeniería",
-  },
-] as const;
+function getMentorCareers(t: (key: string) => string) {
+  return [
+    {
+      id: "software",
+      icon: "💻",
+      color: "#dc2626",
+      tagline: t("mentor.softwareTagline"),
+    },
+    {
+      id: "medicina",
+      icon: "🩺",
+      color: "#059669",
+      tagline: t("mentor.medicinaTagline"),
+    },
+    {
+      id: "derecho",
+      icon: "⚖️",
+      color: "#b45309",
+      tagline: t("mentor.derechoTagline"),
+    },
+    {
+      id: "negocios",
+      icon: "📊",
+      color: "#7c3aed",
+      tagline: t("mentor.negociosTagline"),
+    },
+    {
+      id: "psicologia",
+      icon: "🧠",
+      color: "#7c3aed",
+      tagline: t("mentor.psicologiaTagline"),
+    },
+    {
+      id: "ingenieria",
+      icon: "🏗️",
+      color: "#dc2626",
+      tagline: t("mentor.ingenieriaTagline"),
+    },
+  ] as const;
+}
 
 function getCareerInfo(id: string): Career | undefined {
   return careers.find((c) => c.id === id);
+}
+
+function getCareerTitle(id: string, t: (key: string) => string): string {
+  const titleMap: Record<string, string> = {
+    software: t("mentor.careerSoftware"),
+    medicina: t("mentor.careerMedicina"),
+    derecho: t("mentor.careerDerecho"),
+    negocios: t("mentor.careerNegocios"),
+    psicologia: t("mentor.careerPsicologia"),
+    ingenieria: t("mentor.careerIngenieria"),
+  };
+  return titleMap[id] || id;
 }
 
 function TypingIndicator() {
@@ -303,6 +317,7 @@ function ClearChatModal({
 
 function CareerSelector({ onSelect }: { onSelect: (id: string) => void }) {
   const { t } = useTranslation();
+  const MENTOR_CAREERS = getMentorCareers(t);
   const selectedCareer = (id: string) => {
     onSelect(id);
   };
@@ -371,7 +386,7 @@ function CareerSelector({ onSelect }: { onSelect: (id: string) => void }) {
                     {mentorCareer.icon}
                   </span>
                   <h3 className="mt-2 text-lg font-bold text-slate-900">
-                    {careerInfo?.title || mentorCareer.id}
+                    {getCareerTitle(mentorCareer.id, t)}
                   </h3>
                   <p className="mt-1 text-sm text-slate-500">
                     {mentorCareer.tagline}
@@ -430,7 +445,7 @@ function CareerSelector({ onSelect }: { onSelect: (id: string) => void }) {
 }
 
 export default function MentorPage() {
-  const { t } = useTranslation();
+  const { t, locale } = useTranslation();
   const [selectedCareerId, setSelectedCareerId] = useState<string | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
@@ -601,8 +616,7 @@ export default function MentorPage() {
 
         const initialUserMessage: Message = {
           role: "user",
-          content:
-            "Hola, estoy listo para comenzar la entrevista. Por favor preséntate y empecemos.",
+          content: t("mentor.saludoInicial"),
         };
 
         const res = await apiFetch(`/api/mentor`, {
@@ -611,6 +625,7 @@ export default function MentorPage() {
           body: JSON.stringify({
             messages: [initialUserMessage],
             careerId,
+            locale,
           }),
         });
 
@@ -700,6 +715,7 @@ export default function MentorPage() {
         body: JSON.stringify({
           messages: newMessages,
           careerId: selectedCareerId,
+          locale,
         }),
       });
 

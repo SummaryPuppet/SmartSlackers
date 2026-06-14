@@ -221,9 +221,17 @@ def get_mentor(career_id: str) -> dict[str, str]:
     return MENTOR_PERSONALITIES.get(career_id, MENTOR_PERSONALITIES["default"])
 
 
-def build_system_message(career_id: str) -> str:
+def build_system_message(career_id: str, locale: str = "es") -> str:
     mentor = get_mentor(career_id)
-    return mentor["systemPrompt"]
+    base_prompt = mentor["systemPrompt"]
+    lang_instructions = {
+        "es": "Responde SOLO en español.",
+        "en": "Respond ONLY in English.",
+        "qu": "Respond SOLO en quechua (Runasimi).",
+    }
+    lang_instruction = lang_instructions.get(locale, lang_instructions["es"])
+    base_prompt = base_prompt.replace("Responde SOLO en español", lang_instruction)
+    return base_prompt
 
 
 def get_mentor_info(career_id: str) -> dict[str, str]:

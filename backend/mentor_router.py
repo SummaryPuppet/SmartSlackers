@@ -23,14 +23,16 @@ LLM_MAX_TOKENS = int(os.getenv("LLM_MAX_TOKENS", "800"))
 class MentorRequest(BaseModel):
     messages: list[dict[str, str]]
     careerId: str
+    locale: str = "es"
 
 
 async def stream_mentor_response(
     messages: list[dict[str, str]],
     career_id: str,
+    locale: str = "es",
 ) -> AsyncGenerator[str, None]:
     mentor_info = get_mentor_info(career_id)
-    system_msg = build_system_message(career_id)
+    system_msg = build_system_message(career_id, locale)
 
     yield f"data: {json.dumps({'mentor': mentor_info})}\n\n"
 
@@ -93,7 +95,7 @@ async def mentor_chat(req: MentorRequest):
         raise HTTPException(status_code=400, detail="Messages cannot be empty")
 
     return StreamingResponse(
-        stream_mentor_response(req.messages, req.careerId),
+        stream_mentor_response(req.messages, req.careerId, req.locale),
         media_type="text/event-stream",
         headers={
             "Cache-Control": "no-cache",
