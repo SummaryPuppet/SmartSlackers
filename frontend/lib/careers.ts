@@ -1,3 +1,11 @@
+export type SkillLevel = "basico" | "intermedio" | "avanzado" | "experto";
+
+export type SkillRequirement = {
+  name: string;
+  requiredLevel: SkillLevel;
+  category: "tecnica" | "blanda" | "academica";
+};
+
 export type DayActivity = {
   time: string;
   activity: string;
@@ -15,6 +23,7 @@ export type Career = {
   salary: string;
   salaryMin: number;
   skills: string[];
+  skillRequirements: SkillRequirement[];
   dayInLife: DayActivity[];
   universities: string[];
   outlook: "Alta" | "Media" | "Estable";
@@ -51,6 +60,13 @@ export const careers: Career[] = [
     salary: "S/. 4,000 – 15,000",
     salaryMin: 4000,
     skills: ["Programación", "Lógica", "Trabajo en equipo", "Aprendizaje continuo", "Resolución de problemas"],
+    skillRequirements: [
+      { name: "Programación", requiredLevel: "basico", category: "tecnica" },
+      { name: "Lógica", requiredLevel: "basico", category: "academica" },
+      { name: "Trabajo en equipo", requiredLevel: "basico", category: "blanda" },
+      { name: "Aprendizaje continuo", requiredLevel: "basico", category: "blanda" },
+      { name: "Resolución de problemas", requiredLevel: "basico", category: "academica" },
+    ],
     dayInLife: [
       { time: "9:00 am", activity: "Daily standup con tu equipo (15 min)", emoji: "🤝" },
       { time: "9:30 am", activity: "Revisas el tablero de tareas y priorizas", emoji: "📋" },
@@ -79,6 +95,13 @@ export const careers: Career[] = [
     salary: "S/. 5,000 – 18,000",
     salaryMin: 5000,
     skills: ["Empatía", "Precisión", "Resistencia", "Toma de decisiones", "Memorización"],
+    skillRequirements: [
+      { name: "Empatía", requiredLevel: "intermedio", category: "blanda" },
+      { name: "Precisión", requiredLevel: "basico", category: "blanda" },
+      { name: "Resistencia", requiredLevel: "intermedio", category: "blanda" },
+      { name: "Toma de decisiones", requiredLevel: "basico", category: "blanda" },
+      { name: "Memorización", requiredLevel: "intermedio", category: "academica" },
+    ],
     dayInLife: [
       { time: "7:00 am", activity: "Visita matutina a pacientes hospitalizados", emoji: "🏥" },
       { time: "9:00 am", activity: "Consultas en consultorio externo", emoji: "👨‍⚕️" },
@@ -107,6 +130,13 @@ export const careers: Career[] = [
     salary: "S/. 3,000 – 12,000",
     salaryMin: 3000,
     skills: ["Argumentación", "Lectura crítica", "Negociación", "Ética", "Escritura"],
+    skillRequirements: [
+      { name: "Argumentación", requiredLevel: "intermedio", category: "blanda" },
+      { name: "Lectura crítica", requiredLevel: "intermedio", category: "academica" },
+      { name: "Negociación", requiredLevel: "basico", category: "blanda" },
+      { name: "Ética", requiredLevel: "intermedio", category: "blanda" },
+      { name: "Escritura", requiredLevel: "intermedio", category: "academica" },
+    ],
     dayInLife: [
       { time: "8:00 am", activity: "Revisas expedientes y jurisprudencia", emoji: "📚" },
       { time: "9:30 am", activity: "Reunión con cliente para estrategia legal", emoji: "🤝" },
@@ -135,6 +165,13 @@ export const careers: Career[] = [
     salary: "S/. 3,000 – 12,000",
     salaryMin: 3000,
     skills: ["Liderazgo", "Pensamiento estratégico", "Comunicación", "Análisis financiero", "Gestión de equipos"],
+    skillRequirements: [
+      { name: "Liderazgo", requiredLevel: "basico", category: "blanda" },
+      { name: "Pensamiento estratégico", requiredLevel: "basico", category: "academica" },
+      { name: "Comunicación", requiredLevel: "intermedio", category: "blanda" },
+      { name: "Análisis financiero", requiredLevel: "basico", category: "academica" },
+      { name: "Gestión de equipos", requiredLevel: "basico", category: "blanda" },
+    ],
     dayInLife: [
       { time: "8:30 am", activity: "Revisas KPIs y dashboard del negocio", emoji: "📈" },
       { time: "9:00 am", activity: "Reunión de alineación con el equipo gerencial", emoji: "🗣️" },
@@ -163,6 +200,13 @@ export const careers: Career[] = [
     salary: "S/. 2,500 – 9,000",
     salaryMin: 2500,
     skills: ["Precisión", "Matemáticas", "Atención al detalle", "Normativa tributaria", "Análisis financiero"],
+    skillRequirements: [
+      { name: "Precisión", requiredLevel: "intermedio", category: "blanda" },
+      { name: "Matemáticas", requiredLevel: "intermedio", category: "academica" },
+      { name: "Atención al detalle", requiredLevel: "intermedio", category: "blanda" },
+      { name: "Normativa tributaria", requiredLevel: "basico", category: "tecnica" },
+      { name: "Análisis financiero", requiredLevel: "basico", category: "academica" },
+    ],
     dayInLife: [
       { time: "8:00 am", activity: "Registro de operaciones contables del día anterior", emoji: "📒" },
       { time: "9:30 am", activity: "Declaración de impuestos o revisión SUNAT", emoji: "🏛️" },
@@ -191,6 +235,13 @@ export const careers: Career[] = [
     salary: "S/. 4,000 – 14,000",
     salaryMin: 4000,
     skills: ["Matemáticas", "Física", "Gestión de proyectos", "AutoCAD", "Liderazgo de obras"],
+    skillRequirements: [
+      { name: "Matemáticas", requiredLevel: "intermedio", category: "academica" },
+      { name: "Física", requiredLevel: "intermedio", category: "academica" },
+      { name: "Gestión de proyectos", requiredLevel: "basico", category: "blanda" },
+      { name: "AutoCAD", requiredLevel: "basico", category: "tecnica" },
+      { name: "Liderazgo de obras", requiredLevel: "basico", category: "blanda" },
+    ],
     dayInLife: [
       { time: "7:00 am", activity: "Supervisión en obra — revisas avances del día", emoji: "👷" },
       { time: "9:00 am", activity: "Reunión con residente y maestros de obra", emoji: "🤝" },
@@ -219,6 +270,13 @@ export const careers: Career[] = [
     salary: "S/. 3,000 – 10,000",
     salaryMin: 3000,
     skills: ["Creatividad", "Visión espacial", "AutoCAD", "Gestión de proyectos", "Dibujo técnico"],
+    skillRequirements: [
+      { name: "Creatividad", requiredLevel: "intermedio", category: "blanda" },
+      { name: "Visión espacial", requiredLevel: "basico", category: "blanda" },
+      { name: "AutoCAD", requiredLevel: "basico", category: "tecnica" },
+      { name: "Gestión de proyectos", requiredLevel: "basico", category: "blanda" },
+      { name: "Dibujo técnico", requiredLevel: "basico", category: "tecnica" },
+    ],
     dayInLife: [
       { time: "9:00 am", activity: "Revisas referencias e inspiración para proyecto", emoji: "🖼️" },
       { time: "10:00 am", activity: "Dibujas bocetos y esquemas de distribución", emoji: "✏️" },
@@ -247,6 +305,13 @@ export const careers: Career[] = [
     salary: "S/. 2,500 – 8,000",
     salaryMin: 2500,
     skills: ["Empatía", "Escucha activa", "Observación", "Comunicación", "Neutralidad emocional"],
+    skillRequirements: [
+      { name: "Empatía", requiredLevel: "intermedio", category: "blanda" },
+      { name: "Escucha activa", requiredLevel: "intermedio", category: "blanda" },
+      { name: "Observación", requiredLevel: "intermedio", category: "blanda" },
+      { name: "Comunicación", requiredLevel: "intermedio", category: "blanda" },
+      { name: "Neutralidad emocional", requiredLevel: "basico", category: "blanda" },
+    ],
     dayInLife: [
       { time: "9:00 am", activity: "Revisas notas de sesiones anteriores", emoji: "📓" },
       { time: "9:30 am", activity: "Sesión de terapia individual (50 min)", emoji: "💬" },
@@ -275,6 +340,13 @@ export const careers: Career[] = [
     salary: "S/. 2,500 – 10,000",
     salaryMin: 2500,
     skills: ["Creatividad", "Análisis de datos", "Storytelling", "Social media", "Visión de tendencias"],
+    skillRequirements: [
+      { name: "Creatividad", requiredLevel: "intermedio", category: "blanda" },
+      { name: "Análisis de datos", requiredLevel: "basico", category: "tecnica" },
+      { name: "Storytelling", requiredLevel: "basico", category: "blanda" },
+      { name: "Social media", requiredLevel: "intermedio", category: "tecnica" },
+      { name: "Visión de tendencias", requiredLevel: "basico", category: "blanda" },
+    ],
     dayInLife: [
       { time: "9:00 am", activity: "Revisas métricas de campañas activas", emoji: "📊" },
       { time: "9:30 am", activity: "Brainstorming de ideas para nuevo lanzamiento", emoji: "💡" },
@@ -303,6 +375,13 @@ export const careers: Career[] = [
     salary: "S/. 3,000 – 10,000",
     salaryMin: 3000,
     skills: ["Creatividad", "Empatía con el usuario", "Figma", "Pensamiento de diseño", "Prototipado"],
+    skillRequirements: [
+      { name: "Creatividad", requiredLevel: "intermedio", category: "blanda" },
+      { name: "Empatía con el usuario", requiredLevel: "intermedio", category: "blanda" },
+      { name: "Figma", requiredLevel: "basico", category: "tecnica" },
+      { name: "Pensamiento de diseño", requiredLevel: "basico", category: "blanda" },
+      { name: "Prototipado", requiredLevel: "basico", category: "tecnica" },
+    ],
     dayInLife: [
       { time: "9:00 am", activity: "Revisas feedback de usuarios de la semana", emoji: "💬" },
       { time: "9:30 am", activity: "Sesión de diseño en Figma — wireframes", emoji: "🖌️" },
@@ -331,6 +410,13 @@ export const careers: Career[] = [
     salary: "S/. 2,500 – 7,000",
     salaryMin: 2500,
     skills: ["Empatía", "Precisión", "Trabajo bajo presión", "Técnicas clínicas", "Comunicación"],
+    skillRequirements: [
+      { name: "Empatía", requiredLevel: "intermedio", category: "blanda" },
+      { name: "Precisión", requiredLevel: "intermedio", category: "blanda" },
+      { name: "Trabajo bajo presión", requiredLevel: "basico", category: "blanda" },
+      { name: "Técnicas clínicas", requiredLevel: "basico", category: "tecnica" },
+      { name: "Comunicación", requiredLevel: "intermedio", category: "blanda" },
+    ],
     dayInLife: [
       { time: "7:00 am", activity: "Recepción de turno y revisión de pacientes", emoji: "📋" },
       { time: "8:00 am", activity: "Administración de medicamentos", emoji: "💊" },
@@ -359,6 +445,13 @@ export const careers: Career[] = [
     salary: "S/. 3,500 – 12,000",
     salaryMin: 3500,
     skills: ["Análisis de procesos", "Estadística", "Liderazgo", "Calidad", "Logística"],
+    skillRequirements: [
+      { name: "Análisis de procesos", requiredLevel: "basico", category: "tecnica" },
+      { name: "Estadística", requiredLevel: "intermedio", category: "academica" },
+      { name: "Liderazgo", requiredLevel: "basico", category: "blanda" },
+      { name: "Calidad", requiredLevel: "basico", category: "tecnica" },
+      { name: "Logística", requiredLevel: "basico", category: "tecnica" },
+    ],
     dayInLife: [
       { time: "8:00 am", activity: "Revisión de indicadores de producción", emoji: "📊" },
       { time: "9:00 am", activity: "Recorrido por planta para identificar cuellos de botella", emoji: "🏭" },
@@ -387,6 +480,13 @@ export const careers: Career[] = [
     salary: "S/. 3,500 – 14,000",
     salaryMin: 3500,
     skills: ["Estadística", "Econometría", "Análisis de datos", "Pensamiento crítico", "Programación (R/Python)"],
+    skillRequirements: [
+      { name: "Estadística", requiredLevel: "intermedio", category: "academica" },
+      { name: "Econometría", requiredLevel: "basico", category: "academica" },
+      { name: "Análisis de datos", requiredLevel: "basico", category: "tecnica" },
+      { name: "Pensamiento crítico", requiredLevel: "intermedio", category: "academica" },
+      { name: "Programación (R/Python)", requiredLevel: "basico", category: "tecnica" },
+    ],
     dayInLife: [
       { time: "9:00 am", activity: "Revisas reportes del BCRP e INEI", emoji: "📰" },
       { time: "10:00 am", activity: "Modelado econométrico con datos de mercado", emoji: "📊" },
@@ -415,6 +515,13 @@ export const careers: Career[] = [
     salary: "S/. 2,000 – 10,000",
     salaryMin: 2000,
     skills: ["Creatividad", "Paladar desarrollado", "Resistencia física", "Gestión de cocina", "Pasión"],
+    skillRequirements: [
+      { name: "Creatividad", requiredLevel: "intermedio", category: "blanda" },
+      { name: "Paladar desarrollado", requiredLevel: "basico", category: "blanda" },
+      { name: "Resistencia física", requiredLevel: "intermedio", category: "blanda" },
+      { name: "Gestión de cocina", requiredLevel: "basico", category: "tecnica" },
+      { name: "Pasión", requiredLevel: "intermedio", category: "blanda" },
+    ],
     dayInLife: [
       { time: "8:00 am", activity: "Revisas mise en place y lista de insumos", emoji: "📋" },
       { time: "9:00 am", activity: "Preparación de fondos, salsas y bases", emoji: "🍲" },
@@ -443,6 +550,13 @@ export const careers: Career[] = [
     salary: "S/. 2,000 – 8,000",
     salaryMin: 2000,
     skills: ["Escritura", "Investigación", "Entrevistas", "Edición de video", "Redes sociales"],
+    skillRequirements: [
+      { name: "Escritura", requiredLevel: "intermedio", category: "academica" },
+      { name: "Investigación", requiredLevel: "intermedio", category: "academica" },
+      { name: "Entrevistas", requiredLevel: "basico", category: "blanda" },
+      { name: "Edición de video", requiredLevel: "basico", category: "tecnica" },
+      { name: "Redes sociales", requiredLevel: "intermedio", category: "tecnica" },
+    ],
     dayInLife: [
       { time: "8:00 am", activity: "Revisas agenda de noticias y conferencias", emoji: "📰" },
       { time: "9:00 am", activity: "Reportería — entrevistas en campo", emoji: "🎤" },
@@ -471,6 +585,13 @@ export const careers: Career[] = [
     salary: "S/. 5,000 – 18,000",
     salaryMin: 5000,
     skills: ["Geología", "Explosivos", "Seguridad minera", "Gestión ambiental", "Liderazgo"],
+    skillRequirements: [
+      { name: "Geología", requiredLevel: "basico", category: "academica" },
+      { name: "Explosivos", requiredLevel: "basico", category: "tecnica" },
+      { name: "Seguridad minera", requiredLevel: "basico", category: "tecnica" },
+      { name: "Gestión ambiental", requiredLevel: "basico", category: "tecnica" },
+      { name: "Liderazgo", requiredLevel: "basico", category: "blanda" },
+    ],
     dayInLife: [
       { time: "6:00 am", activity: "Briefing de seguridad antes de bajar a mina", emoji: "⛑️" },
       { time: "7:00 am", activity: "Supervisión de tajo abierto o galería", emoji: "⛏️" },
@@ -499,6 +620,13 @@ export const careers: Career[] = [
     salary: "S/. 3,000 – 12,000",
     salaryMin: 3000,
     skills: ["Precisión manual", "Empatía", "Anatomía", "Técnica clínica", "Paciencia"],
+    skillRequirements: [
+      { name: "Precisión manual", requiredLevel: "intermedio", category: "blanda" },
+      { name: "Empatía", requiredLevel: "intermedio", category: "blanda" },
+      { name: "Anatomía", requiredLevel: "intermedio", category: "academica" },
+      { name: "Técnica clínica", requiredLevel: "basico", category: "tecnica" },
+      { name: "Paciencia", requiredLevel: "intermedio", category: "blanda" },
+    ],
     dayInLife: [
       { time: "9:00 am", activity: "Revisas agenda de pacientes del día", emoji: "📅" },
       { time: "9:30 am", activity: "Primera consulta — diagnóstico y plan de tratamiento", emoji: "🔍" },
@@ -527,6 +655,13 @@ export const careers: Career[] = [
     salary: "S/. 3,000 – 10,000",
     salaryMin: 3000,
     skills: ["Química", "Biología", "Legislación ambiental", "SIG", "Gestión de residuos"],
+    skillRequirements: [
+      { name: "Química", requiredLevel: "intermedio", category: "academica" },
+      { name: "Biología", requiredLevel: "intermedio", category: "academica" },
+      { name: "Legislación ambiental", requiredLevel: "basico", category: "tecnica" },
+      { name: "SIG", requiredLevel: "basico", category: "tecnica" },
+      { name: "Gestión de residuos", requiredLevel: "basico", category: "tecnica" },
+    ],
     dayInLife: [
       { time: "8:00 am", activity: "Monitoreo de calidad de aire y agua", emoji: "🌊" },
       { time: "9:30 am", activity: "Elaboración de Estudio de Impacto Ambiental", emoji: "📝" },
@@ -555,6 +690,13 @@ export const careers: Career[] = [
     salary: "S/. 2,000 – 7,000",
     salaryMin: 2000,
     skills: ["Comunicación", "Empatía", "Didáctica", "Creatividad", "Paciencia"],
+    skillRequirements: [
+      { name: "Comunicación", requiredLevel: "intermedio", category: "blanda" },
+      { name: "Empatía", requiredLevel: "intermedio", category: "blanda" },
+      { name: "Didáctica", requiredLevel: "basico", category: "academica" },
+      { name: "Creatividad", requiredLevel: "intermedio", category: "blanda" },
+      { name: "Paciencia", requiredLevel: "intermedio", category: "blanda" },
+    ],
     dayInLife: [
       { time: "7:30 am", activity: "Preparas materiales y sesión del día", emoji: "📋" },
       { time: "8:00 am", activity: "Primera clase del día — dinámica de inicio", emoji: "👋" },
@@ -583,6 +725,13 @@ export const careers: Career[] = [
     salary: "S/. 2,000 – 7,000",
     salaryMin: 2000,
     skills: ["Bioquímica", "Anatomía", "Empatía", "Elaboración de dietas", "Educación alimentaria"],
+    skillRequirements: [
+      { name: "Bioquímica", requiredLevel: "intermedio", category: "academica" },
+      { name: "Anatomía", requiredLevel: "intermedio", category: "academica" },
+      { name: "Empatía", requiredLevel: "intermedio", category: "blanda" },
+      { name: "Elaboración de dietas", requiredLevel: "basico", category: "tecnica" },
+      { name: "Educación alimentaria", requiredLevel: "basico", category: "blanda" },
+    ],
     dayInLife: [
       { time: "9:00 am", activity: "Consulta inicial con nuevo paciente — anamnesis", emoji: "📋" },
       { time: "10:00 am", activity: "Análisis de composición corporal", emoji: "⚖️" },
@@ -611,6 +760,13 @@ export const careers: Career[] = [
     salary: "S/. 2,000 – 8,000",
     salaryMin: 2000,
     skills: ["Idiomas", "Organización", "Servicio al cliente", "Cultura general", "Gestión de crisis"],
+    skillRequirements: [
+      { name: "Idiomas", requiredLevel: "intermedio", category: "academica" },
+      { name: "Organización", requiredLevel: "intermedio", category: "blanda" },
+      { name: "Servicio al cliente", requiredLevel: "intermedio", category: "blanda" },
+      { name: "Cultura general", requiredLevel: "intermedio", category: "academica" },
+      { name: "Gestión de crisis", requiredLevel: "basico", category: "blanda" },
+    ],
     dayInLife: [
       { time: "8:00 am", activity: "Check-in de grupos y coordinación con guías", emoji: "🗺️" },
       { time: "9:30 am", activity: "Tour por Miraflores, Centro Histórico o Cusco", emoji: "🏛️" },
@@ -639,6 +795,13 @@ export const careers: Career[] = [
     salary: "S/. 3,000 – 12,000",
     salaryMin: 3000,
     skills: ["Idiomas (mínimo 2)", "Análisis político", "Negociación", "Protocolo", "Geopolítica"],
+    skillRequirements: [
+      { name: "Idiomas (mínimo 2)", requiredLevel: "intermedio", category: "academica" },
+      { name: "Análisis político", requiredLevel: "intermedio", category: "academica" },
+      { name: "Negociación", requiredLevel: "intermedio", category: "blanda" },
+      { name: "Protocolo", requiredLevel: "basico", category: "tecnica" },
+      { name: "Geopolítica", requiredLevel: "basico", category: "academica" },
+    ],
     dayInLife: [
       { time: "9:00 am", activity: "Revisas cable diplomático y noticias internacionales", emoji: "📰" },
       { time: "10:00 am", activity: "Reunión con delegación extranjera", emoji: "🤝" },
@@ -667,6 +830,13 @@ export const careers: Career[] = [
     salary: "S/. 2,500 – 8,000",
     salaryMin: 2500,
     skills: ["Empatía animal", "Cirugía", "Diagnóstico clínico", "Resistencia", "Farmacología"],
+    skillRequirements: [
+      { name: "Empatía animal", requiredLevel: "intermedio", category: "blanda" },
+      { name: "Cirugía", requiredLevel: "basico", category: "tecnica" },
+      { name: "Diagnóstico clínico", requiredLevel: "basico", category: "tecnica" },
+      { name: "Resistencia", requiredLevel: "intermedio", category: "blanda" },
+      { name: "Farmacología", requiredLevel: "basico", category: "academica" },
+    ],
     dayInLife: [
       { time: "8:00 am", activity: "Atención de urgencias de la mañana", emoji: "🚨" },
       { time: "9:30 am", activity: "Consultas programadas — perros, gatos, exóticos", emoji: "🐕" },

@@ -4,6 +4,9 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Navbar from "@/components/Navbar";
 import { useSimulationBadge } from "@/src/hooks/useSimulationBadge";
+import { onAuthStateChanged } from "firebase/auth";
+import { auth } from "@/src/firebase/config";
+import { saveSimulationResult } from "@/src/services/simulationService";
 
 // ─── Types ────────────────────────────────────────────────
 type GamePhase = "briefing" | "launch" | "dodge" | "landing" | "moonwalk" | "result";
@@ -966,6 +969,21 @@ function ResultScreen({ scores, onRetry, onExit }: { scores: number[]; onRetry: 
 
   const phaseLabels = ["Lanzamiento", "Asteroides", "Aterrizaje", "Paseo lunar"];
   const circumference = 2 * Math.PI * 70;
+
+  useEffect(() => {
+    const unsub = onAuthStateChanged(auth, async (user) => {
+      if (!user) return;
+      try {
+        await saveSimulationResult(user.uid, "astronauta", pct, rank.label, {
+          launch: scores[0] ?? 0,
+          dodge: scores[1] ?? 0,
+          landing: scores[2] ?? 0,
+          moonwalk: scores[3] ?? 0,
+        });
+      } catch { /* silent */ }
+    });
+    return () => unsub();
+  }, []);
 
   return (
     <motion.div

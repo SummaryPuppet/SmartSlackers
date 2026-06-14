@@ -12,6 +12,8 @@ import { careers } from "@/lib/careers";
 import { UserBadge } from "@/lib/badges";
 import { fetchUserBadges } from "@/src/services/badgeService";
 import BadgeDisplay from "@/app/components/BadgeDisplay";
+import SkillAssessment from "./components/SkillAssessment";
+import SkillGapDashboard from "./components/SkillGapDashboard";
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
@@ -622,6 +624,50 @@ export default function PerfilPage() {
                 </div>
               )}
             </div>
+
+            {/* ── Selector de Carrera ── */}
+            {user && (
+              <div className="rounded-[2rem] border border-slate-200 bg-white p-8 shadow-[0_22px_70px_rgba(15,23,42,0.08)]">
+                <p className="text-sm font-semibold uppercase tracking-[0.24em] text-red-600 mb-4">
+                  Carrera de interés
+                </p>
+                <p className="text-sm text-slate-500 mb-4">
+                  Selecciona la carrera que te interesa para desbloquear el análisis de skills.
+                </p>
+                <select
+                  value={profile.carrera || ""}
+                  onChange={async (e) => {
+                    const value = e.target.value;
+                    setProfile((prev) => ({ ...prev, carrera: value || undefined }));
+                    try {
+                      await updateDoc(doc(db, colUsuario, user.uid), { carrera: value });
+                    } catch { /* silent */ }
+                  }}
+                  className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-800 outline-none transition focus:border-red-400 focus:ring-2 focus:ring-red-100"
+                >
+                  <option value="">— Selecciona una carrera —</option>
+                  {careers.map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {c.emoji} {c.title}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+
+            {/* ── Skills Assessment ── */}
+            {user && profile.carrera && (
+              <div className="rounded-[2rem] border border-slate-200 bg-white p-8 shadow-[0_22px_70px_rgba(15,23,42,0.08)]">
+                <SkillAssessment userId={user.uid} careerId={profile.carrera} />
+              </div>
+            )}
+
+            {/* ── Skill Gap Dashboard ── */}
+            {user && profile.carrera && (
+              <div className="rounded-[2rem] border border-slate-200 bg-white p-8 shadow-[0_22px_70px_rgba(15,23,42,0.08)]">
+                <SkillGapDashboard userId={user.uid} careerId={profile.carrera} />
+              </div>
+            )}
 
             {/* ── Proceso de admisión ── */}
             <div className="rounded-[2rem] border border-slate-200 bg-white p-8 shadow-[0_22px_70px_rgba(15,23,42,0.08)]">

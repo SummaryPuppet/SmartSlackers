@@ -1,11 +1,10 @@
 "use client";
 
+import { useState, useRef, useEffect, useCallback } from "react";
+import Link from "next/link";
 import Navbar from "@/components/Navbar";
+import { motion } from "framer-motion";
 import { careers, type Career } from "@/lib/careers";
-import {
-  showBadgeNotification,
-  trackBadgeEvent,
-} from "@/src/services/badgeService";
 import { onAuthStateChanged } from "firebase/auth";
 import { auth } from "../../src/firebase/config";
 import { db } from "../../src/firebase/config";

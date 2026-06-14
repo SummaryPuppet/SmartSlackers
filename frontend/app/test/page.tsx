@@ -30,7 +30,7 @@ export default function TestPage() {
         />
       )}
       {logic.phase === "result" && (
-        <ResultScreen result={logic.getResult()} score={logic.score} />
+        <ResultScreen result={logic.getResult()} score={logic.score} answers={logic.answers} />
       )}
       </div>
     </main>

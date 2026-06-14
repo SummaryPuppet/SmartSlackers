@@ -4,6 +4,9 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Navbar from "@/components/Navbar";
 import { useSimulationBadge } from "@/src/hooks/useSimulationBadge";
+import { onAuthStateChanged } from "firebase/auth";
+import { auth } from "@/src/firebase/config";
+import { saveSimulationResult } from "@/src/services/simulationService";
 
 type GamePhase = "briefing" | "diagnose" | "defib" | "surgery" | "icu" | "result";
 
@@ -416,6 +419,21 @@ function ResultScreen({ scores }: { scores: number[] }) {
   const color = pct >= 85 ? "#4ade80" : pct >= 65 ? "#fbbf24" : pct >= 40 ? "#60a5fa" : "#f87171";
   const phases = ["Diagnóstico", "Desfibrilador", "Cirugía", "UCI"];
   const circ = 2 * Math.PI * 50;
+
+  useEffect(() => {
+    const unsub = onAuthStateChanged(auth, async (user) => {
+      if (!user) return;
+      try {
+        await saveSimulationResult(user.uid, "medicina", pct, rank, {
+          diagnose: scores[0] ?? 0,
+          defib: scores[1] ?? 0,
+          surgery: scores[2] ?? 0,
+          icu: scores[3] ?? 0,
+        });
+      } catch { /* silent */ }
+    });
+    return () => unsub();
+  }, []);
 
   return (
     <div className="flex flex-col items-center gap-6 px-4 py-6 max-w-sm mx-auto">

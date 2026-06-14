@@ -86,6 +86,7 @@ export function useTestLogic() {
     selected,
     timeLeft,
     score,
+    answers,
     question: questions[current],
     total: questions.length,
     startTest,
