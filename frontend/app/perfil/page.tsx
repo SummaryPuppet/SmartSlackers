@@ -1,10 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { onAuthStateChanged, signOut, User } from "firebase/auth";
 import { auth } from "@/src/firebase/config";
-import { doc, getDoc, updateDoc, Timestamp } from "firebase/firestore";
+import { doc, getDoc, updateDoc, Timestamp, getDocs, query, collection, orderBy, limit } from "firebase/firestore";
 import { db } from "@/src/firebase/config";
 import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from "framer-motion";
@@ -66,6 +66,18 @@ type CarreraAnalizada = {
   razon: string;
 };
 
+type TestHistoryEntry = {
+  id: string;
+  careerKey: string;
+  careerTitle: string | null;
+  careerEmoji: string | null;
+  match: number | null;
+  score: number;
+  insufficient: boolean;
+  answered: number;
+  completedAt: Timestamp | null;
+};
+
 // ─── Admisión steps ──────────────────────────────────────────────────────────
 
 const ETAPAS_ADMISION = [
@@ -102,6 +114,60 @@ export default function PerfilPage() {
   const [analizando,        setAnalizando]         = useState(false);
   const [carrerasAnalizadas, setCarrerasAnalizadas] = useState<CarreraAnalizada[] | null>(null);
   const [errorAnalisis,     setErrorAnalisis]      = useState<string | null>(null);
+
+  // Test history
+  const [testHistory, setTestHistory]         = useState<TestHistoryEntry[]>([]);
+  const [historyLoading, setHistoryLoading]   = useState(true);
+  const [inProgressTest, setInProgressTest]   = useState<{
+    current: number; answeredCount: number; savedAt: number;
+  } | null>(null);
+
+  // Top-2 carreras por promedio de match (tests completados únicamente)
+  const careerStats = useMemo(() => {
+    const completed = testHistory.filter(
+      (e) => !e.insufficient && e.careerKey && e.match !== null,
+    );
+    if (completed.length === 0) return null;
+
+    const grouped: Record<string, { matches: number[]; title: string; emoji: string }> = {};
+    completed.forEach((e) => {
+      if (!grouped[e.careerKey]) {
+        grouped[e.careerKey] = {
+          matches: [],
+          title: e.careerTitle ?? e.careerKey,
+          emoji: e.careerEmoji ?? "🎓",
+        };
+      }
+      grouped[e.careerKey].matches.push(e.match!);
+    });
+
+    return Object.entries(grouped)
+      .map(([key, data]) => ({
+        key,
+        title: data.title,
+        emoji: data.emoji,
+        avgMatch: Math.round(data.matches.reduce((a, b) => a + b, 0) / data.matches.length),
+        count: data.matches.length,
+      }))
+      .sort((a, b) => b.count !== a.count ? b.count - a.count : b.avgMatch - a.avgMatch)
+      .slice(0, 2);
+  }, [testHistory]);
+
+  // Lee el test en progreso desde localStorage (client-only)
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem("vocatio_test_session");
+      if (!raw) return;
+      const data = JSON.parse(raw);
+      if (Array.isArray(data.answers) && data.answers.length > 0 && data.current < 10) {
+        setInProgressTest({
+          current:       data.current,
+          answeredCount: data.answers.filter((a: string) => a !== "none").length,
+          savedAt:       data.savedAt ?? Date.now(),
+        });
+      }
+    } catch { /* ignore */ }
+  }, []);
 
   // Badges
   const [badges, setBadges]                   = useState<UserBadge[]>([]);
@@ -161,6 +227,44 @@ export default function PerfilPage() {
         // badges are optional, fail silently
       } finally {
         setBadgesLoading(false);
+      }
+
+      // Carga historial de tests
+      try {
+        let histSnap;
+        try {
+          histSnap = await getDocs(
+            query(
+              collection(db, foundCol, currentUser.uid, "historialTests"),
+              orderBy("completedAt", "desc"),
+              limit(10),
+            ),
+          );
+        } catch {
+          histSnap = await getDocs(
+            query(collection(db, foundCol, currentUser.uid, "historialTests"), limit(10)),
+          );
+        }
+        const history: TestHistoryEntry[] = histSnap.docs.map((d) => {
+          const data = d.data();
+          return {
+            id:           d.id,
+            careerKey:    data.careerKey    ?? "",
+            careerTitle:  data.careerTitle  ?? null,
+            careerEmoji:  data.careerEmoji  ?? null,
+            match:        data.match        ?? null,
+            score:        data.score        ?? 0,
+            insufficient: data.insufficient ?? false,
+            answered:     data.answered     ?? 0,
+            completedAt:  data.completedAt  ?? null,
+          };
+        });
+        history.sort((a, b) => (b.completedAt?.seconds ?? 0) - (a.completedAt?.seconds ?? 0));
+        setTestHistory(history);
+      } catch {
+        // historial es opcional
+      } finally {
+        setHistoryLoading(false);
       }
 
       setLoading(false);
@@ -623,6 +727,172 @@ export default function PerfilPage() {
               )}
             </div>
 
+            {/* ── Test en progreso ── */}
+            {inProgressTest && (
+              <motion.div
+                initial={{ opacity: 0, y: -8 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="rounded-[2rem] border-2 border-amber-300 bg-amber-50 p-6 shadow-[0_22px_70px_rgba(251,191,36,0.15)]"
+              >
+                <div className="flex items-start gap-4 mb-4">
+                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-amber-100 text-2xl">
+                    ⏳
+                  </div>
+                  <div>
+                    <p className="text-sm font-bold text-amber-900">Test Vocacional en progreso</p>
+                    <p className="text-xs text-amber-700 mt-0.5">
+                      Ibas por la pregunta{" "}
+                      <strong>{inProgressTest.current + 1} de 10</strong>
+                      {" "}·{" "}
+                      <strong>{inProgressTest.answeredCount}</strong>{" "}
+                      {inProgressTest.answeredCount === 1 ? "respuesta" : "respuestas"} registradas
+                    </p>
+                    <p className="text-[11px] text-amber-600 mt-0.5">
+                      Guardado el{" "}
+                      {new Date(inProgressTest.savedAt).toLocaleDateString("es-PE", {
+                        day: "2-digit", month: "long",
+                      })}
+                    </p>
+                  </div>
+                </div>
+                {/* Barra de progreso */}
+                <div className="mb-4 h-2 overflow-hidden rounded-full bg-amber-200">
+                  <motion.div
+                    className="h-full rounded-full bg-amber-400"
+                    initial={{ width: 0 }}
+                    animate={{ width: `${(inProgressTest.current / 10) * 100}%` }}
+                    transition={{ duration: 0.8, ease: "easeOut" }}
+                  />
+                </div>
+                <a
+                  href="/test"
+                  className="flex w-full items-center justify-center gap-2 rounded-2xl bg-amber-500 px-5 py-3 text-sm font-bold text-white shadow-md transition hover:bg-amber-600"
+                >
+                  ▶ Continuar el test ahora
+                </a>
+              </motion.div>
+            )}
+
+            {/* ── Historial de Test Vocacional ── */}
+            <div className="rounded-[2rem] border border-slate-200 bg-white p-8 shadow-[0_22px_70px_rgba(15,23,42,0.08)]">
+              <div className="mb-5 flex items-center justify-between">
+                <p className="text-sm font-semibold uppercase tracking-[0.24em] text-red-600">
+                  Historial de test vocacional
+                </p>
+                <a
+                  href="/test"
+                  className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-semibold text-red-600 transition hover:bg-red-50 hover:border-red-200"
+                >
+                  + Nuevo test
+                </a>
+              </div>
+
+              {historyLoading ? (
+                <div className="space-y-3">
+                  {[1, 2].map((i) => (
+                    <div key={i} className="h-20 rounded-2xl bg-slate-100 animate-pulse" />
+                  ))}
+                </div>
+              ) : testHistory.length === 0 ? (
+                <div className="flex flex-col items-center gap-3 rounded-2xl border border-dashed border-slate-200 bg-slate-50 py-8 text-center">
+                  <span className="text-3xl">🎯</span>
+                  <p className="text-sm text-slate-500">Aún no has realizado el test vocacional.</p>
+                  <a
+                    href="/test"
+                    className="rounded-xl bg-red-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-red-700"
+                  >
+                    Hacer el test ahora
+                  </a>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {testHistory.map((entry, i) => (
+                    <motion.div
+                      key={entry.id}
+                      initial={{ opacity: 0, x: -16 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: i * 0.07 }}
+                      className={`rounded-2xl border p-4 ${
+                        entry.insufficient
+                          ? "border-slate-200 bg-slate-50"
+                          : "border-red-100 bg-red-50/40"
+                      }`}
+                    >
+                      {/* Fila superior */}
+                      <div className="mb-2.5 flex items-start justify-between gap-3">
+                        <div className="flex items-center gap-2.5">
+                          <span className="text-2xl leading-none">
+                            {entry.insufficient ? "😔" : entry.careerEmoji ?? "🎓"}
+                          </span>
+                          <div>
+                            <p className="text-sm font-bold text-slate-900 leading-tight">
+                              {entry.insufficient
+                                ? "Sin resultado suficiente"
+                                : entry.careerTitle ?? "Carrera detectada"}
+                            </p>
+                            <p className="text-[11px] text-slate-400 mt-0.5">
+                              {entry.completedAt
+                                ? formatDate(entry.completedAt)
+                                : "Fecha no disponible"}
+                            </p>
+                          </div>
+                        </div>
+                        <span
+                          className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-bold ${
+                            entry.insufficient
+                              ? "bg-slate-200 text-slate-600"
+                              : "bg-red-100 text-red-700"
+                          }`}
+                        >
+                          {entry.insufficient ? "Insuficiente" : "Completado ✓"}
+                        </span>
+                      </div>
+
+                      {/* Barra de compatibilidad (solo si hay resultado) */}
+                      {!entry.insufficient && entry.match !== null && (
+                        <>
+                          <div className="mb-1 flex items-center justify-between">
+                            <span className="text-xs text-slate-500">Compatibilidad</span>
+                            <span className="text-xs font-bold text-red-600">{entry.match}%</span>
+                          </div>
+                          <div className="mb-2.5 h-1.5 overflow-hidden rounded-full bg-slate-200">
+                            <motion.div
+                              className="h-full rounded-full bg-gradient-to-r from-red-500 to-rose-400"
+                              initial={{ width: 0 }}
+                              animate={{ width: `${entry.match}%` }}
+                              transition={{ duration: 0.8, ease: "easeOut", delay: 0.1 + i * 0.07 }}
+                            />
+                          </div>
+                        </>
+                      )}
+
+                      {/* Detalle inferior */}
+                      <div className="flex items-center gap-4 text-xs text-slate-500">
+                        {entry.insufficient ? (
+                          <span>
+                            Respondidas: <strong className="text-slate-700">{entry.answered}/10</strong>
+                          </span>
+                        ) : (
+                          <>
+                            <span>
+                              Puntaje: <strong className="text-slate-700">{entry.score} pts</strong>
+                            </span>
+                            <span>·</span>
+                            <a
+                              href={`/roadmap?career=${entry.careerKey}`}
+                              className="font-semibold text-red-600 hover:underline"
+                            >
+                              Ver roadmap →
+                            </a>
+                          </>
+                        )}
+                      </div>
+                    </motion.div>
+                  ))}
+                </div>
+              )}
+            </div>
+
             {/* ── Proceso de admisión ── */}
             <div className="rounded-[2rem] border border-slate-200 bg-white p-8 shadow-[0_22px_70px_rgba(15,23,42,0.08)]">
               <p className="text-sm font-semibold uppercase tracking-[0.24em] text-red-600">
@@ -692,6 +962,110 @@ export default function PerfilPage() {
                 Tu cuenta está registrada y has iniciado sesión correctamente.
               </p>
             </div>
+
+            {/* ── Círculo de estadísticas vocacionales ── */}
+            {!historyLoading && careerStats && careerStats.length > 0 && (() => {
+              const R = 58;
+              const CIRC = 2 * Math.PI * R;
+              const top = careerStats[0];
+              const second = careerStats[1] ?? null;
+              return (
+                <div className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-[0_22px_70px_rgba(15,23,42,0.08)]">
+                  <p className="mb-5 text-sm font-semibold uppercase tracking-[0.24em] text-red-600">
+                    Tu perfil vocacional
+                  </p>
+
+                  {/* Círculo principal */}
+                  <div className="flex flex-col items-center gap-3">
+                    <div className="relative">
+                      <svg width="148" height="148" viewBox="0 0 148 148">
+                        <defs>
+                          <linearGradient id="cvGrad" x1="0" y1="0" x2="1" y2="1">
+                            <stop offset="0%" stopColor="#dc2626" />
+                            <stop offset="100%" stopColor="#f87171" />
+                          </linearGradient>
+                        </defs>
+                        {/* Track */}
+                        <circle cx="74" cy="74" r={R} fill="none" stroke="#f1f5f9" strokeWidth="13" />
+                        {/* Progreso */}
+                        <motion.circle
+                          cx="74" cy="74" r={R}
+                          fill="none"
+                          stroke="url(#cvGrad)"
+                          strokeWidth="13"
+                          strokeLinecap="round"
+                          strokeDasharray={CIRC}
+                          initial={{ strokeDashoffset: CIRC }}
+                          animate={{ strokeDashoffset: CIRC * (1 - top.avgMatch / 100) }}
+                          transition={{ duration: 1.4, ease: "easeOut", delay: 0.15 }}
+                          transform="rotate(-90 74 74)"
+                        />
+                      </svg>
+                      {/* Texto central */}
+                      <div className="absolute inset-0 flex flex-col items-center justify-center">
+                        <span className="text-3xl leading-none">{top.emoji}</span>
+                        <span className="mt-1 text-2xl font-black text-red-600">{top.avgMatch}%</span>
+                      </div>
+                    </div>
+                    <div className="text-center">
+                      <p className="text-sm font-bold text-slate-900">{top.title}</p>
+                      <p className="mt-0.5 text-xs text-slate-500">
+                        Basado en {top.count} test{top.count !== 1 ? "s" : ""}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Segunda opción — levemente borrosa */}
+                  {second && (
+                    <div className="mt-5 border-t border-slate-100 pt-4">
+                      <p className="mb-3 text-center text-xs font-semibold uppercase tracking-wide text-slate-400">
+                        Segunda opción
+                      </p>
+                      <div className="relative overflow-hidden rounded-2xl border border-slate-100 bg-slate-50 p-3">
+                        <div
+                          className="flex items-center gap-3"
+                          style={{ filter: "blur(3.5px)", userSelect: "none", pointerEvents: "none" }}
+                        >
+                          {/* Mini círculo */}
+                          <div className="relative flex-shrink-0">
+                            <svg width="56" height="56" viewBox="0 0 56 56">
+                              <circle cx="28" cy="28" r="20" fill="none" stroke="#e2e8f0" strokeWidth="6" />
+                              <circle
+                                cx="28" cy="28" r="20"
+                                fill="none"
+                                stroke="#dc2626"
+                                strokeWidth="6"
+                                strokeLinecap="round"
+                                strokeDasharray={2 * Math.PI * 20}
+                                strokeDashoffset={2 * Math.PI * 20 * (1 - second.avgMatch / 100)}
+                                transform="rotate(-90 28 28)"
+                                opacity="0.65"
+                              />
+                            </svg>
+                            <div className="absolute inset-0 flex items-center justify-center">
+                              <span className="text-xs font-black text-red-600">{second.avgMatch}%</span>
+                            </div>
+                          </div>
+                          <div>
+                            <p className="text-sm font-bold text-slate-900">
+                              {second.emoji} {second.title}
+                            </p>
+                            <p className="text-xs text-slate-500">Segunda carrera más apta</p>
+                          </div>
+                        </div>
+                        {/* Overlay con indicación */}
+                        <div className="absolute inset-0 flex items-center justify-center">
+                          <div className="flex items-center gap-1.5 rounded-full border border-slate-200 bg-white/90 px-3 py-1.5 shadow-sm">
+                            <span className="text-xs">🔍</span>
+                            <span className="text-xs font-semibold text-slate-600">Haz más tests para revelar</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              );
+            })()}
 
             <div className="space-y-3 rounded-[2rem] border border-slate-200 bg-white p-6 shadow-[0_22px_70px_rgba(15,23,42,0.08)]">
               <p className="text-sm font-semibold uppercase tracking-[0.24em] text-slate-600">

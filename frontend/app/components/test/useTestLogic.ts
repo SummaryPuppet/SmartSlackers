@@ -1,13 +1,15 @@
 import { useState, useEffect, useCallback } from "react";
 import { questions, careerResults } from "@/lib/questions";
 
+export const TEST_SESSION_KEY = "vocatio_test_session";
+
 export function useTestLogic() {
   const [phase, setPhase] = useState<
     "intro" | "question" | "feedback" | "result"
   >("intro");
   const [current, setCurrent] = useState(0);
   const [selected, setSelected] = useState<string | null>(null);
-  const [answers, setAnswers] = useState<string[]>([]); // guarda career, no letra
+  const [answers, setAnswers] = useState<string[]>([]);
   const [timeLeft, setTimeLeft] = useState(20);
   const [score, setScore] = useState(0);
 
@@ -21,7 +23,39 @@ export function useTestLogic() {
     return () => clearTimeout(t);
   }, [timeLeft, phase]);
 
+  // Persiste el progreso en localStorage mientras el test está activo
+  useEffect(() => {
+    if (phase !== "question" && phase !== "feedback") return;
+    if (answers.length === 0 && current === 0) return;
+    localStorage.setItem(TEST_SESSION_KEY, JSON.stringify({
+      answers,
+      current,
+      score,
+      savedAt: Date.now(),
+    }));
+  }, [answers, current, score, phase]);
+
+  // Inicia un test completamente nuevo (borra progreso previo)
   const startTest = () => {
+    localStorage.removeItem(TEST_SESSION_KEY);
+    setAnswers([]);
+    setCurrent(0);
+    setScore(0);
+    setSelected(null);
+    setPhase("question");
+    setTimeLeft(20);
+  };
+
+  // Retoma un test guardado desde localStorage
+  const resumeTest = (
+    savedAnswers: string[],
+    savedCurrent: number,
+    savedScore: number,
+  ) => {
+    setAnswers(savedAnswers);
+    setCurrent(savedCurrent);
+    setScore(savedScore);
+    setSelected(null);
     setPhase("question");
     setTimeLeft(20);
   };
@@ -31,7 +65,6 @@ export function useTestLogic() {
       if (selected) return;
       setSelected(optionId);
 
-      // Guardamos la carrera que apunta esa opción
       const chosenOption = questions[current].options.find(
         (o) => o.id === optionId,
       );
@@ -63,11 +96,9 @@ export function useTestLogic() {
     }
   };
 
-  // Contar qué carrera acumuló más respuestas
   const getResult = () => {
     const valid = answers.filter((a) => a !== "none");
 
-    // Menos de 3 respuestas reales → no hay suficiente información
     if (valid.length < 3) {
       return { insufficient: true, answered: valid.length, careerKey: "" };
     }
@@ -86,9 +117,11 @@ export function useTestLogic() {
     selected,
     timeLeft,
     score,
+    answers,
     question: questions[current],
     total: questions.length,
     startTest,
+    resumeTest,
     handleAnswer,
     getResult,
   };

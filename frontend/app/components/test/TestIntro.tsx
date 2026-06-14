@@ -1,7 +1,14 @@
 "use client";
 import { motion } from "framer-motion";
 
-export default function TestIntro({ onStart }: { onStart: () => void }) {
+type Props = {
+  onStart: () => void;
+  hasSession?: boolean;
+  sessionProgress?: { current: number; total: number };
+  onResume?: () => void;
+};
+
+export default function TestIntro({ onStart, hasSession = false, sessionProgress, onResume }: Props) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 30 }}
@@ -84,6 +91,47 @@ export default function TestIntro({ onStart }: { onStart: () => void }) {
         ))}
       </div>
 
+      {/* Botón de continuar — solo si hay sesión guardada */}
+      {hasSession && onResume && sessionProgress && (
+        <motion.div
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.5 }}
+          style={{
+            background: "linear-gradient(135deg,#fffbeb,#fef3c7)",
+            border: "1.5px solid #f59e0b",
+            borderRadius: "14px",
+            padding: "14px 16px",
+            marginBottom: "12px",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            gap: "12px",
+          }}
+        >
+          <div style={{ textAlign: "left" }}>
+            <p style={{ fontSize: "13px", fontWeight: 700, color: "#92400e", margin: 0 }}>
+              ⏳ Test en progreso
+            </p>
+            <p style={{ fontSize: "11px", color: "#b45309", margin: "2px 0 0" }}>
+              Pregunta {sessionProgress.current + 1} de {sessionProgress.total}
+            </p>
+          </div>
+          <button
+            onClick={onResume}
+            style={{
+              padding: "8px 18px",
+              background: "#f59e0b",
+              border: "none", borderRadius: "10px",
+              color: "white", fontSize: "13px", fontWeight: 700,
+              cursor: "pointer", whiteSpace: "nowrap",
+            }}
+          >
+            ▶ Continuar
+          </button>
+        </motion.div>
+      )}
+
       {/* Botón start */}
       <motion.button
         whileHover={{ scale: 1.04 }}
@@ -97,7 +145,7 @@ export default function TestIntro({ onStart }: { onStart: () => void }) {
           cursor: "pointer", letterSpacing: "0.3px"
         }}
       >
-        🚀 Comenzar el test
+        {hasSession ? "🔄 Empezar de nuevo" : "🚀 Comenzar el test"}
       </motion.button>
 
       <p style={{ fontSize: "11px", color: "#7a7a7a", marginTop: "12px" }}>
