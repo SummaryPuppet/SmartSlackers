@@ -1,6 +1,5 @@
 "use client";
-<<<<<<< Updated upstream
-=======
+
 import AvatarSVG from "@/app/components/avatar/AvatarSVG";
 import DinosaurSVG from "@/app/components/avatar/DinosaurSVG";
 import { auth, db } from "@/src/firebase/config";
@@ -10,7 +9,7 @@ import {
 } from "@/src/services/badgeService";
 import { loadAvatar } from "@/src/services/avatarService";
 import { CAREER_COSMETICS } from "@/lib/careerCosmetics";
-import type { AvatarConfig, Career } from "@/types/avatar";
+import type { AvatarConfig } from "@/types/avatar";
 import { onAuthStateChanged } from "firebase/auth";
 import {
   addDoc,
@@ -20,15 +19,8 @@ import {
   serverTimestamp,
   setDoc,
 } from "firebase/firestore";
->>>>>>> Stashed changes
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
-import AvatarCustomizer from "@/app/components/avatar/AvatarCustomizer";
-import { onAuthStateChanged } from "firebase/auth";
-import { doc, getDoc, setDoc, addDoc, collection, serverTimestamp } from "firebase/firestore";
-import { auth, db } from "@/src/firebase/config";
-import { trackBadgeEvent, showBadgeNotification } from "@/src/services/badgeService";
-import type { Career } from "@/types/avatar";
 
 const DEFAULT_AVATAR: AvatarConfig = {
   skinTone: "medium-light",
@@ -512,23 +504,6 @@ export default function ResultScreen({
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.2, duration: 0.5, type: "spring" }}
           >
-<<<<<<< Updated upstream
-            ¡Tu avatar ha recibido un cosmético!
-          </h3>
-          <p
-            style={{
-              textAlign: "center",
-              fontSize: "13px",
-              color: "#5b5b5b",
-              marginBottom: "1rem",
-            }}
-          >
-            Personaliza tu avatar y guárdalo con tu cosmético de {result.title}
-          </p>
-          <AvatarCustomizer careerResult={result.careerKey as Career} />
-        </motion.div>
-      )}
-=======
             <div
               style={{
                 background: "rgba(255,255,255,0.96)",
@@ -607,7 +582,6 @@ export default function ResultScreen({
       })()}
 
       </div>{/* fin flex row */}
->>>>>>> Stashed changes
     </div>
   );
 }

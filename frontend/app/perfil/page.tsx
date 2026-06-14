@@ -9,15 +9,19 @@ import type { AvatarConfig } from "@/types/avatar";
 import { useRouter } from "next/navigation";
 import { onAuthStateChanged, signOut, User } from "firebase/auth";
 import { auth } from "@/src/firebase/config";
-import { doc, getDoc, Timestamp, getDocs, query, collection, orderBy, limit } from "firebase/firestore";
+import { motion, AnimatePresence } from "framer-motion";
+import { doc, getDoc, Timestamp, getDocs, query, collection, orderBy, limit, updateDoc, setDoc } from "firebase/firestore";
 import { db } from "@/src/firebase/config";
 import { Button } from "@/components/ui/button";
+import { careers } from "@/lib/careers";
 import PerfilSidebar, { SeccionId } from "./components/PerfilSidebar";
 import SeccionCuenta from "./components/SeccionCuenta";
 import SeccionIntereses from "./components/SeccionIntereses";
 import SeccionSkills from "./components/SeccionSkills";
 import SeccionAdmision from "./components/SeccionAdmision";
 import SeccionLogros from "./components/SeccionLogros";
+import SkillAssessment from "./components/SkillAssessment";
+import SkillGapDashboard from "./components/SkillGapDashboard";
 import { useTranslation } from "@/lib/i18n";
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
@@ -113,6 +117,7 @@ export default function PerfilPage() {
   // Test history
   const [testHistory, setTestHistory] = useState<TestHistoryEntry[]>([]);
   const [historyLoading, setHistoryLoading] = useState(true);
+  const [inProgressTest, setInProgressTest] = useState<{ current: number; answeredCount: number } | null>(null);
 
   // Badges
   const [badges, setBadges]                   = useState<any[]>([]);
@@ -123,6 +128,17 @@ export default function PerfilPage() {
 
   // Colección en Firestore
   const [colUsuario, setColUsuario] = useState<string>("usuarios");
+
+  // Intereses — modo edición inline
+  const [modoEdicion, setModoEdicion] = useState(false);
+  const [guardando, setGuardando] = useState(false);
+  const [guardadoOk, setGuardadoOk] = useState(false);
+  const [inputInteres, setInputInteres] = useState("");
+
+  // Análisis de carreras
+  const [analizando, setAnalizando] = useState(false);
+  const [errorAnalisis, setErrorAnalisis] = useState<string | null>(null);
+  const [carrerasAnalizadas, setCarrerasAnalizadas] = useState<CarreraAnalizada[] | null>(null);
 
   // Top-2 carreras por promedio de match
   const careerStats = useMemo(() => {
@@ -255,6 +271,81 @@ export default function PerfilPage() {
     return () => unsubscribe();
   }, [router, t]);
 
+  // Carga el test en progreso desde localStorage
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem("vocatio_test_session");
+      if (!raw) return;
+      const data = JSON.parse(raw);
+      if (Array.isArray(data.answers) && data.answers.length > 0 && data.current < 10) {
+        setInProgressTest({ current: data.current, answeredCount: data.answers.filter((a: string) => a !== "none").length });
+      }
+    } catch { /* ignore */ }
+  }, []);
+
+  // ── Handlers — Intereses ─────────────────────────────────────────────────
+
+  const handleEditar = () => setModoEdicion(true);
+
+  const handleCancelarEdicion = () => {
+    setModoEdicion(false);
+    setInputInteres("");
+  };
+
+  const handleRemoveTag = (tag: string) => {
+    setIntereses((prev) => prev.filter((t) => t !== tag));
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      const trimmed = inputInteres.trim().toLowerCase();
+      if (trimmed && !intereses.includes(trimmed)) {
+        setIntereses((prev) => [...prev, trimmed]);
+      }
+      setInputInteres("");
+    }
+  };
+
+  const handleGuardar = async () => {
+    if (!user) return;
+    setGuardando(true);
+    try {
+      await setDoc(doc(db, colUsuario, user.uid), { intereses }, { merge: true });
+      setModoEdicion(false);
+      setInputInteres("");
+      setGuardadoOk(true);
+      setTimeout(() => setGuardadoOk(false), 2500);
+    } catch { /* ignore */ } finally {
+      setGuardando(false);
+    }
+  };
+
+  // ── Handlers — Análisis de carreras ──────────────────────────────────────
+
+  const handleAnalizarCarreras = async () => {
+    if (!user || intereses.length === 0) return;
+    setAnalizando(true);
+    setErrorAnalisis(null);
+    try {
+      const snap = await import("firebase/firestore").then(({ getDoc, doc }) =>
+        getDoc(doc(db, colUsuario, user.uid))
+      );
+      const data = snap.data();
+      if (data?.carrerasAnalizadas) {
+        setCarrerasAnalizadas(data.carrerasAnalizadas as CarreraAnalizada[]);
+      } else {
+        setErrorAnalisis("No hay análisis disponible aún. Completa más tests para obtener recomendaciones.");
+      }
+    } catch {
+      setErrorAnalisis("Error al cargar el análisis de carreras.");
+    } finally {
+      setAnalizando(false);
+    }
+  };
+
+  // ── Constantes ──────────────────────────────────────────────────────────
+
   // ── Handlers ──────────────────────────────────────────────────────────────
 
   const handleLogout = async () => {
@@ -282,6 +373,22 @@ export default function PerfilPage() {
   }
 
   // ── Render ─────────────────────────────────────────────────────────────────
+
+  const ETAPAS_ADMISION = [
+    { id: "registro",    label: "Registro" },
+    { id: "documentos", label: "Documentos" },
+    { id: "examen",     label: "Examen de admisión" },
+    { id: "resultado",  label: "Resultado" },
+    { id: "matricula",  label: "Matrícula" },
+  ];
+  const currentEtapaIndex = ETAPAS_ADMISION.findIndex((e) => e.id === profile.etapaAdmision);
+
+  const datosAdicionales = [
+    { label: "Teléfono",  value: profile.telefono  },
+    { label: "DNI",       value: profile.dni        },
+    { label: "Modalidad", value: profile.modalidad  },
+    { label: "Sede",      value: profile.sede       },
+  ].filter((d) => !!d.value) as { label: string; value: string }[];
 
   return (
     <main className="min-h-screen bg-gradient-to-b from-white via-red-50 to-slate-100 text-slate-950">
@@ -320,22 +427,11 @@ export default function PerfilPage() {
           <PerfilSidebar active={activeSection} onChange={setActiveSection} />
         </div>
 
-<<<<<<< Updated upstream
-        {/* ── Layout: sidebar + contenido ── */}
-        <div className="flex gap-8">
-          {/* Sidebar desktop */}
-          <div className="hidden lg:block">
-            <PerfilSidebar active={activeSection} onChange={setActiveSection} />
-          </div>
+        {/* ── Layout: dos columnas ── */}
+        <div className="flex gap-8 items-start">
 
-          {/* Contenido de la sección activa */}
-          <div className="flex-1 min-w-0">
-            {activeSection === "cuenta" && (
-              <SeccionCuenta profile={profile} getInitials={getInitials} />
-            )}
-=======
           {/* Columna izquierda */}
-          <div className="space-y-8">
+          <div className="flex-1 min-w-0 space-y-8">
 
             {/* ── Datos personales ── */}
             <div className="space-y-3 rounded-[2rem] border border-slate-200 bg-white p-8 shadow-[0_22px_70px_rgba(15,23,42,0.08)]">
@@ -492,7 +588,7 @@ export default function PerfilPage() {
                             </p>
                           )}
                           <p className="text-[11px] text-slate-400">
-                            {entry.completedAt ? formatDate(entry.completedAt) : "Fecha desconocida"}
+                            {entry.completedAt ? formatDate(entry.completedAt, t) : "Fecha desconocida"}
                           </p>
                           {!entry.insufficient && (
                             <div className="mt-1.5 h-1 w-full overflow-hidden rounded-full bg-slate-200">
@@ -955,7 +1051,10 @@ export default function PerfilPage() {
                 Tu cuenta está registrada y has iniciado sesión correctamente.
               </p>
             </div>
->>>>>>> Stashed changes
+
+            {activeSection === "cuenta" && (
+              <SeccionCuenta profile={profile} getInitials={getInitials} />
+            )}
 
             {activeSection === "intereses" && user && (
               <SeccionIntereses
@@ -963,15 +1062,6 @@ export default function PerfilPage() {
                 colUsuario={colUsuario}
                 intereses={intereses}
                 setIntereses={setIntereses}
-              />
-            )}
-
-            {activeSection === "skills" && user && (
-              <SeccionSkills
-                user={user}
-                colUsuario={colUsuario}
-                carrera={profile.carrera}
-                setCarrera={(value) => setProfile((prev) => ({ ...prev, carrera: value }))}
               />
             )}
 
@@ -990,7 +1080,7 @@ export default function PerfilPage() {
                 historyLoading={historyLoading}
               />
             )}
-          </div>
+          </aside>
         </div>
       </div>
     </main>

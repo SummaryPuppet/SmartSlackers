@@ -14,6 +14,22 @@ export function useTestLogic() {
   const [timeLeft, setTimeLeft] = useState(20);
   const [score, setScore] = useState(0);
 
+  const nextQuestion = () => {
+    if (current + 1 >= questions.length) {
+      setPhase("result");
+    } else {
+      setCurrent((c) => c + 1);
+      setSelected(null);
+      setTimeLeft(20);
+      setPhase("question");
+    }
+  };
+
+  const handleTimeout = () => {
+    setAnswers((prev) => [...prev, "none"]);
+    setTimeout(() => nextQuestion(), 1000);
+  };
+
   useEffect(() => {
     if (phase !== "question") return;
     if (timeLeft === 0) {
@@ -22,18 +38,21 @@ export function useTestLogic() {
     }
     const t = setTimeout(() => setTimeLeft((t) => t - 1), 1000);
     return () => clearTimeout(t);
-  }, [timeLeft, phase]);
+  }, [timeLeft, phase, handleTimeout, nextQuestion]);
 
   // Persiste el progreso en localStorage mientras el test está activo
   useEffect(() => {
     if (phase !== "question" && phase !== "feedback") return;
     if (answers.length === 0 && current === 0) return;
-    localStorage.setItem(TEST_SESSION_KEY, JSON.stringify({
-      answers,
-      current,
-      score,
-      savedAt: Date.now(),
-    }));
+    localStorage.setItem(
+      TEST_SESSION_KEY,
+      JSON.stringify({
+        answers,
+        current,
+        score,
+        savedAt: Date.now(),
+      }),
+    );
   }, [answers, current, score, phase]);
 
   // Inicia un test completamente nuevo (borra progreso previo)
@@ -81,27 +100,15 @@ export function useTestLogic() {
     [selected, timeLeft, current],
   );
 
-  const handleTimeout = () => {
-    setAnswers((prev) => [...prev, "none"]);
-    setTimeout(() => nextQuestion(), 1000);
-  };
-
-  const nextQuestion = () => {
-    if (current + 1 >= questions.length) {
-      setPhase("result");
-    } else {
-      setCurrent((c) => c + 1);
-      setSelected(null);
-      setTimeLeft(20);
-      setPhase("question");
-    }
-  };
-
   const getResult = () => {
     const valid = answers.filter((a) => a !== "none");
 
     if (valid.length < 3) {
-      return { insufficient: true, answered: valid.length, careerKey: "" as Career };
+      return {
+        insufficient: true,
+        answered: valid.length,
+        careerKey: "" as Career,
+      };
     }
 
     const count: Record<string, number> = {};
@@ -109,7 +116,11 @@ export function useTestLogic() {
       count[career] = (count[career] || 0) + 1;
     });
     const winner = Object.entries(count).sort((a, b) => b[1] - a[1])[0][0];
-    return { ...careerResults[winner], careerKey: winner as Career, insufficient: false };
+    return {
+      ...careerResults[winner],
+      careerKey: winner as Career,
+      insufficient: false,
+    };
   };
 
   return {
