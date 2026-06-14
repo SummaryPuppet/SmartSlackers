@@ -121,6 +121,136 @@ function CareerAccessory({ cosmetic }: { cosmetic: NonNullable<AvatarConfig["car
   return <>{accessories[cosmetic.accessory] ?? null}</>;
 }
 
+/* ─── Traje completo por carrera ─────────────────────── */
+function CareerBodyOutfit({ cosmetic }: { cosmetic: NonNullable<AvatarConfig["careerCosmetic"]> }) {
+  const c = cosmetic.accessoryColor;
+  switch (cosmetic.career) {
+    case "medicina":
+      return (
+        <g>
+          <path d="M60 155 L60 200 Q100 204 140 200 L140 155 Q120 148 100 148 Q80 148 60 155Z" fill="#ffffff" opacity="0.92"/>
+          <rect x="64" y="170" width="14" height="12" rx="2" fill="#f0fdf4" stroke="#d1d5db" strokeWidth="1"/>
+          <rect x="122" y="170" width="14" height="12" rx="2" fill="#f0fdf4" stroke="#d1d5db" strokeWidth="1"/>
+          <path d="M88 148 L82 162 Q100 158 118 162 L112 148" fill="#f8fafc"/>
+          <circle cx="100" cy="165" r="3" fill="#ef4444" opacity="0.6"/>
+          <rect x="97" y="155" width="6" height="14" rx="2" fill="#ef4444" opacity="0.5"/>
+          <rect x="91" y="161" width="18" height="5" rx="2" fill="#ef4444" opacity="0.5"/>
+        </g>
+      );
+    case "gastronomia":
+      return (
+        <g>
+          <path d="M60 155 L60 200 Q100 204 140 200 L140 155 Q120 148 100 148 Q80 148 60 155Z" fill="#ffffff" opacity="0.94"/>
+          <path d="M88 148 L83 162 Q100 158 117 162 L112 148" fill="#f9fafb"/>
+          <circle cx="90" cy="170" r="3" fill="#d1d5db"/>
+          <circle cx="100" cy="170" r="3" fill="#d1d5db"/>
+          <circle cx="110" cy="170" r="3" fill="#d1d5db"/>
+        </g>
+      );
+    case "ingenieria":
+      return (
+        <g>
+          <path d="M60 158 L60 200 Q100 204 140 200 L140 158" fill="#f97316" opacity="0.85"/>
+          <line x1="60" y1="170" x2="140" y2="170" stroke="#fbbf24" strokeWidth="4" opacity="0.7"/>
+          <line x1="60" y1="185" x2="140" y2="185" stroke="#fbbf24" strokeWidth="4" opacity="0.7"/>
+          <path d="M88 148 L82 160 L100 156 L118 160 L112 148" fill="#ea580c" opacity="0.9"/>
+        </g>
+      );
+    case "derecho":
+      return (
+        <g>
+          <path d="M58 154 L58 200 Q100 204 142 200 L142 154 Q120 146 100 146 Q80 146 58 154Z" fill="#1e1b4b" opacity="0.9"/>
+          <path d="M86 146 L78 162 L100 157 L122 162 L114 146" fill="#e0e7ff" opacity="0.8"/>
+          <rect x="96" y="158" width="8" height="28" fill="#e0e7ff" opacity="0.3" rx="1"/>
+        </g>
+      );
+    case "software":
+      return (
+        <g>
+          <path d="M60 155 L60 200 Q100 204 140 200 L140 155 Q120 147 100 147 Q80 147 60 155Z" fill="#1e293b" opacity="0.9"/>
+          <text x="100" y="182" textAnchor="middle" fontSize="13" fill="#60a5fa" fontFamily="monospace" opacity="0.8">&lt;/&gt;</text>
+          <path d="M86 147 L80 160 Q100 156 120 160 L114 147" fill="#334155"/>
+        </g>
+      );
+    case "astronauta":
+      return (
+        <g>
+          <path d="M55 152 L55 200 Q100 206 145 200 L145 152 Q122 142 100 142 Q78 142 55 152Z" fill="#94a3b8" opacity="0.92"/>
+          <rect x="74" y="162" width="52" height="34" rx="10" fill="#bfdbfe" opacity="0.35"/>
+          <rect x="74" y="162" width="52" height="34" rx="10" fill="none" stroke="#64748b" strokeWidth="2"/>
+          <path d="M86 142 L80 156 L100 151 L120 156 L114 142" fill="#cbd5e1"/>
+        </g>
+      );
+    case "psicologia":
+      return (
+        <g>
+          <path d="M62 155 L62 200 Q100 204 138 200 L138 155 Q120 148 100 148 Q80 148 62 155Z" fill={c} opacity="0.88"/>
+          <path d="M88 148 L83 161 Q100 157 117 161 L112 148" fill={c}/>
+          <rect x="86" y="163" width="28" height="20" rx="3" fill="#f5f3ff" opacity="0.4"/>
+        </g>
+      );
+    case "diseno":
+      return (
+        <g>
+          <path d="M62 155 L62 200 Q100 204 138 200 L138 155 Q120 148 100 148 Q80 148 62 155Z" fill={c} opacity="0.88"/>
+          <ellipse cx="85" cy="172" rx="6" ry="6" fill="#ef4444" opacity="0.7"/>
+          <ellipse cx="100" cy="168" rx="6" ry="6" fill="#f59e0b" opacity="0.7"/>
+          <ellipse cx="115" cy="172" rx="6" ry="6" fill="#22c55e" opacity="0.7"/>
+        </g>
+      );
+    case "musica":
+      return (
+        <g>
+          <path d="M62 155 L62 200 Q100 204 138 200 L138 155 Q120 148 100 148 Q80 148 62 155Z" fill="#18181b" opacity="0.9"/>
+          <text x="100" y="182" textAnchor="middle" fontSize="18" fill="#dc2626" opacity="0.8" fontFamily="serif">♪</text>
+        </g>
+      );
+    case "matematicas":
+      return (
+        <g>
+          <path d="M62 155 L62 200 Q100 204 138 200 L138 155 Q120 148 100 148 Q80 148 62 155Z" fill="#1d4ed8" opacity="0.88"/>
+          <text x="100" y="182" textAnchor="middle" fontSize="13" fill="#dbeafe" opacity="0.8" fontFamily="serif">∑ π</text>
+        </g>
+      );
+    case "literatura":
+      return (
+        <g>
+          <path d="M62 155 L62 200 Q100 204 138 200 L138 155 Q120 148 100 148 Q80 148 62 155Z" fill="#92400e" opacity="0.88"/>
+          <path d="M86 148 L82 162 Q100 158 118 162 L114 148" fill="#fef3c7" opacity="0.7"/>
+          <rect x="82" y="165" width="36" height="24" rx="3" fill="#fef3c7" opacity="0.2"/>
+        </g>
+      );
+    case "administracion":
+      return (
+        <g>
+          <path d="M60 154 L60 200 Q100 204 140 200 L140 154 Q120 146 100 146 Q80 146 60 154Z" fill="#1e3a5f" opacity="0.9"/>
+          <path d="M87 146 L81 161 L100 157 L119 161 L113 146" fill="#f1f5f9" opacity="0.8"/>
+          <rect x="96" y="157" width="8" height="26" fill="#ef4444" rx="1"/>
+        </g>
+      );
+    case "arquitectura":
+      return (
+        <g>
+          <path d="M62 155 L62 200 Q100 204 138 200 L138 155 Q120 148 100 148 Q80 148 62 155Z" fill="#292524" opacity="0.9"/>
+          <ellipse cx="100" cy="152" rx="20" ry="8" fill="#292524"/>
+          <line x1="80" y1="170" x2="120" y2="170" stroke="#f5f5f4" strokeWidth="1.5" opacity="0.4"/>
+          <line x1="80" y1="180" x2="120" y2="180" stroke="#f5f5f4" strokeWidth="1.5" opacity="0.4"/>
+        </g>
+      );
+    case "marketing":
+      return (
+        <g>
+          <path d="M62 155 L62 200 Q100 204 138 200 L138 155 Q120 148 100 148 Q80 148 62 155Z" fill={c} opacity="0.88"/>
+          <path d="M87 148 L82 162 Q100 158 118 162 L113 148" fill={c}/>
+          <circle cx="85" cy="175" r="5" fill="#fca5a5" opacity="0.7"/>
+          <circle cx="115" cy="175" r="5" fill="#fca5a5" opacity="0.7"/>
+        </g>
+      );
+    default:
+      return null;
+  }
+}
+
 /* ─── Componente principal ───────────────────────────── */
 export default function AvatarSVG({ config, size = 200 }: AvatarSVGProps) {
   const skin   = SKIN_TONES[config.skinTone];
@@ -140,12 +270,15 @@ export default function AvatarSVG({ config, size = 200 }: AvatarSVGProps) {
       xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Avatar personalizado">
       {BACKGROUNDS[config.background] ?? BACKGROUNDS.sky}
 
-      {/* Cuerpo */}
+      {/* Cuerpo base */}
       <ellipse cx="100" cy="175" rx="42" ry="30" fill={outfit.shirt} />
       <ellipse cx="100" cy="160" rx="28" ry="18" fill={outfit.shirt} />
       <polygon points="94,142 100,154 106,142" fill={outfit.collar} />
       <polygon points="87,138 100,154 94,138" fill={outfit.collar} opacity=".7" />
       <polygon points="113,138 100,154 106,138" fill={outfit.collar} opacity=".7" />
+
+      {/* Traje completo de carrera (superpuesto al cuerpo base) */}
+      {cos && <CareerBodyOutfit cosmetic={cos} />}
 
       {/* Cuello */}
       <rect x="92" y="130" width="16" height="16" rx="4" fill={skin.fill} />

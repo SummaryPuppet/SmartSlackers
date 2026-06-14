@@ -1,14 +1,26 @@
 "use client";
 import { motion } from "framer-motion";
+import type { AvatarConfig } from "@/types/avatar";
+import DinosaurSVG from "@/app/components/avatar/DinosaurSVG";
+import AvatarSVG from "@/app/components/avatar/AvatarSVG";
 
 type Props = {
   onStart: () => void;
   hasSession?: boolean;
   sessionProgress?: { current: number; total: number };
   onResume?: () => void;
+  avatarConfig?: AvatarConfig | null;
 };
 
-export default function TestIntro({ onStart, hasSession = false, sessionProgress, onResume }: Props) {
+export default function TestIntro({
+  onStart,
+  hasSession = false,
+  sessionProgress,
+  onResume,
+  avatarConfig,
+}: Props) {
+  const isDino = !avatarConfig || (avatarConfig.avatarType ?? "dino") === "dino";
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 30 }}
@@ -91,7 +103,7 @@ export default function TestIntro({ onStart, hasSession = false, sessionProgress
         ))}
       </div>
 
-      {/* Botón de continuar — solo si hay sesión guardada */}
+      {/* Banner "Continuar" — solo si hay sesión guardada */}
       {hasSession && onResume && sessionProgress && (
         <motion.div
           initial={{ opacity: 0, y: 8 }}
@@ -105,18 +117,64 @@ export default function TestIntro({ onStart, hasSession = false, sessionProgress
             marginBottom: "12px",
             display: "flex",
             alignItems: "center",
-            justifyContent: "space-between",
-            gap: "12px",
+            gap: "14px",
           }}
         >
-          <div style={{ textAlign: "left" }}>
+          {/* Avatar con punto pulsante */}
+          <div style={{ position: "relative", flexShrink: 0 }}>
+            {isDino
+              ? <DinosaurSVG size={64} />
+              : <AvatarSVG config={avatarConfig!} size={64} />
+            }
+            {/* Pulsing dot */}
+            <span style={{
+              position: "absolute", top: "-3px", right: "-3px",
+              width: "14px", height: "14px",
+              display: "flex", alignItems: "center", justifyContent: "center",
+            }}>
+              <span style={{
+                position: "absolute",
+                width: "14px", height: "14px",
+                borderRadius: "50%",
+                background: "#f59e0b",
+                opacity: 0.75,
+                animation: "ping 1.5s cubic-bezier(0,0,0.2,1) infinite",
+              }} />
+              <span style={{
+                width: "10px", height: "10px",
+                borderRadius: "50%",
+                background: "#d97706",
+                display: "block",
+                flexShrink: 0,
+              }} />
+            </span>
+          </div>
+
+          {/* Texto */}
+          <div style={{ textAlign: "left", flex: 1 }}>
             <p style={{ fontSize: "13px", fontWeight: 700, color: "#92400e", margin: 0 }}>
-              ⏳ Test en progreso
+              Test en progreso
             </p>
-            <p style={{ fontSize: "11px", color: "#b45309", margin: "2px 0 0" }}>
+            <p style={{ fontSize: "11px", color: "#b45309", margin: "2px 0 6px" }}>
               Pregunta {sessionProgress.current + 1} de {sessionProgress.total}
             </p>
+            {/* Mini barra de progreso */}
+            <div style={{
+              height: "5px", borderRadius: "3px",
+              background: "rgba(217,119,6,0.2)",
+              overflow: "hidden",
+            }}>
+              <div style={{
+                height: "100%",
+                width: `${((sessionProgress.current) / sessionProgress.total) * 100}%`,
+                background: "#f59e0b",
+                borderRadius: "3px",
+                transition: "width 0.4s ease",
+              }} />
+            </div>
           </div>
+
+          {/* Botón continuar */}
           <button
             onClick={onResume}
             style={{
@@ -124,7 +182,7 @@ export default function TestIntro({ onStart, hasSession = false, sessionProgress
               background: "#f59e0b",
               border: "none", borderRadius: "10px",
               color: "white", fontSize: "13px", fontWeight: 700,
-              cursor: "pointer", whiteSpace: "nowrap",
+              cursor: "pointer", whiteSpace: "nowrap", flexShrink: 0,
             }}
           >
             ▶ Continuar
@@ -151,6 +209,13 @@ export default function TestIntro({ onStart, hasSession = false, sessionProgress
       <p style={{ fontSize: "11px", color: "#7a7a7a", marginTop: "12px" }}>
         Tus respuestas son confidenciales y solo se usan para tu perfil vocacional.
       </p>
+
+      {/* Keyframe para el ping del punto */}
+      <style>{`
+        @keyframes ping {
+          75%, 100% { transform: scale(2); opacity: 0; }
+        }
+      `}</style>
     </motion.div>
   );
 }

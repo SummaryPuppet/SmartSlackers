@@ -1,4 +1,26 @@
 "use client";
+<<<<<<< Updated upstream
+=======
+import AvatarSVG from "@/app/components/avatar/AvatarSVG";
+import DinosaurSVG from "@/app/components/avatar/DinosaurSVG";
+import { auth, db } from "@/src/firebase/config";
+import {
+  showBadgeNotification,
+  trackBadgeEvent,
+} from "@/src/services/badgeService";
+import { loadAvatar } from "@/src/services/avatarService";
+import { CAREER_COSMETICS } from "@/lib/careerCosmetics";
+import type { AvatarConfig, Career } from "@/types/avatar";
+import { onAuthStateChanged } from "firebase/auth";
+import {
+  addDoc,
+  collection,
+  doc,
+  getDoc,
+  serverTimestamp,
+  setDoc,
+} from "firebase/firestore";
+>>>>>>> Stashed changes
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import AvatarCustomizer from "@/app/components/avatar/AvatarCustomizer";
@@ -7,6 +29,17 @@ import { doc, getDoc, setDoc, addDoc, collection, serverTimestamp } from "fireba
 import { auth, db } from "@/src/firebase/config";
 import { trackBadgeEvent, showBadgeNotification } from "@/src/services/badgeService";
 import type { Career } from "@/types/avatar";
+
+const DEFAULT_AVATAR: AvatarConfig = {
+  skinTone: "medium-light",
+  hairStyle: "medium",
+  hairColor: "black",
+  eyeColor: "brown",
+  outfitBase: "casual",
+  background: "sky",
+  unlockedCareers: [],
+  avatarType: "dino",
+};
 
 type Result = {
   title?: string;
@@ -28,8 +61,17 @@ export default function ResultScreen({
   score: number;
   answers: string[];
 }) {
-  const [displayMatch, setDisplayMatch] = useState(0);
-  const [showAvatar, setShowAvatar] = useState(false);
+  const [displayMatch, setDisplayMatch]   = useState(0);
+  const [avatarCfg, setAvatarCfg]         = useState<AvatarConfig | null>(null);
+
+  // Carga avatar del usuario para la preview lateral
+  useEffect(() => {
+    const user = auth.currentUser;
+    if (!user) return;
+    loadAvatar(user.uid).then((saved) => {
+      if (saved) setAvatarCfg(saved.config);
+    }).catch(() => {});
+  }, []);
 
   // Contador de compatibilidad — solo corre si hay resultado real
   useEffect(() => {
@@ -46,13 +88,6 @@ export default function ResultScreen({
     }, 25);
     return () => clearInterval(interval);
   }, [result.match, result.insufficient]);
-
-  // Avatar cosmético — solo si hay resultado real
-  useEffect(() => {
-    if (result.insufficient) return;
-    const t = setTimeout(() => setShowAvatar(true), 1200);
-    return () => clearTimeout(t);
-  }, [result.insufficient]);
 
   // Guarda el resultado en Firestore una sola vez.
   // El localStorage actúa como candado atómico: el primero en llegar elimina
@@ -91,6 +126,42 @@ export default function ResultScreen({
         answered: result.answered ?? 10,
         completedAt: serverTimestamp(),
       });
+
+      // Aplica el cosmético de carrera al avatar automáticamente
+      if (!result.insufficient && result.careerKey) {
+        try {
+          const [{ loadAvatar, saveAvatar }, { CAREER_COSMETICS }] = await Promise.all([
+            import("@/src/services/avatarService"),
+            import("@/lib/careerCosmetics"),
+          ]);
+          const cosmetic = CAREER_COSMETICS[result.careerKey];
+          if (cosmetic) {
+            const saved  = await loadAvatar(fbUser.uid);
+            const base   = saved?.config ?? {
+              skinTone:        "medium-light" as const,
+              hairStyle:       "medium"       as const,
+              hairColor:       "black"        as const,
+              eyeColor:        "brown"        as const,
+              outfitBase:      "casual"       as const,
+              background:      cosmetic.background,
+              unlockedCareers: [] as import("@/types/avatar").Career[],
+              avatarType:      "dino"         as const,
+            };
+            const unlocked = Array.from(
+              new Set([...(base.unlockedCareers ?? []), result.careerKey as import("@/types/avatar").Career])
+            );
+            await saveAvatar(fbUser.uid, {
+              ...base,
+              background:      cosmetic.background,
+              careerCosmetic:  cosmetic,
+              unlockedCareers: unlocked,
+            });
+          }
+        } catch { /* avatar update es silencioso */ }
+        localStorage.setItem("vocatio_step_test", "1");
+        const { markTutorialStep: mark } = await import("@/src/services/tutorialService");
+        mark(fbUser.uid, "test");
+      }
     };
     save().catch(() => {});
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -221,7 +292,11 @@ export default function ResultScreen({
 
   // ── Pantalla de resultado normal ──────────────────────────────────
   return (
-    <div className="w-full max-w-2xl mx-auto px-4 py-8 flex flex-col gap-8">
+    <div className="w-full max-w-5xl mx-auto px-4 py-8">
+      <div className="flex flex-col lg:flex-row gap-6 items-start">
+
+      {/* ── Columna izquierda: resultado ── */}
+      <div className="flex-1 min-w-0">
       <motion.div
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
@@ -418,28 +493,26 @@ export default function ResultScreen({
           </motion.button>
         </div>
       </motion.div>
+      </div>{/* fin columna izquierda */}
 
-      {/* Avatar con cosmético de carrera */}
-      {showAvatar && (
-        <motion.div
-          initial={{ opacity: 0, y: 24 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, type: "spring" }}
-          style={{
-            background: "rgba(255,255,255,0.96)",
-            border: "0.5px solid rgba(255,0,0,0.12)",
-            borderRadius: "20px",
-            padding: "1.5rem 1rem",
-          }}
-        >
-          <h3
-            style={{
-              textAlign: "center",
-              fontWeight: 700,
-              fontSize: "18px",
-              marginBottom: "4px",
-            }}
+      {/* ── Columna derecha: preview del avatar con nuevo traje ── */}
+      {(() => {
+        const base    = avatarCfg ?? DEFAULT_AVATAR;
+        const isDino  = (base.avatarType ?? "dino") === "dino";
+        const cosmetic = CAREER_COSMETICS[result.careerKey];
+        const avatarWithCosmetic: AvatarConfig = {
+          ...base,
+          careerCosmetic: cosmetic ?? base.careerCosmetic,
+          background:     cosmetic?.background ?? base.background,
+        };
+        return (
+          <motion.div
+            className="w-full lg:w-[260px] flex-shrink-0 lg:sticky lg:top-6"
+            initial={{ opacity: 0, x: 24 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.2, duration: 0.5, type: "spring" }}
           >
+<<<<<<< Updated upstream
             ¡Tu avatar ha recibido un cosmético!
           </h3>
           <p
@@ -455,6 +528,86 @@ export default function ResultScreen({
           <AvatarCustomizer careerResult={result.careerKey as Career} />
         </motion.div>
       )}
+=======
+            <div
+              style={{
+                background: "rgba(255,255,255,0.96)",
+                border: "0.5px solid rgba(255,0,0,0.14)",
+                borderRadius: "20px",
+                padding: "1.5rem 1rem",
+                textAlign: "center",
+              }}
+            >
+              <motion.div
+                initial={{ scale: 0, rotate: -15 }}
+                animate={{ scale: 1, rotate: 0 }}
+                transition={{ type: "spring", delay: 0.35, bounce: 0.5 }}
+                style={{ fontSize: "32px", marginBottom: "6px" }}
+              >
+                🎉
+              </motion.div>
+              <p style={{ fontWeight: 700, fontSize: "15px", color: "#1e293b", marginBottom: "2px" }}>
+                ¡Nuevo traje desbloqueado!
+              </p>
+              <p style={{ fontSize: "12px", color: "#64748b", marginBottom: "16px" }}>
+                {result.emoji} <strong>{result.title}</strong>
+              </p>
+
+              {/* Avatar con el traje de la carrera ganadora */}
+              <motion.div
+                initial={{ scale: 0.85, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{ delay: 0.4, type: "spring", stiffness: 220 }}
+                style={{ display: "flex", justifyContent: "center", marginBottom: "16px" }}
+              >
+                <div style={{ borderRadius: "16px", overflow: "hidden", boxShadow: "0 8px 30px rgba(0,0,0,0.12)" }}>
+                  {isDino
+                    ? <DinosaurSVG career={result.careerKey} size={180} />
+                    : <AvatarSVG config={avatarWithCosmetic} size={180} />
+                  }
+                </div>
+              </motion.div>
+
+              {/* Badge de compatibilidad */}
+              <div
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: "6px",
+                  background: "linear-gradient(135deg,#fee2e2,#fecaca)",
+                  borderRadius: "12px",
+                  padding: "8px 16px",
+                  marginBottom: "14px",
+                }}
+              >
+                <span style={{ fontSize: "16px" }}>🏆</span>
+                <span style={{ fontWeight: 800, fontSize: "20px", color: "#dc2626" }}>{result.match}%</span>
+                <span style={{ fontSize: "11px", color: "#ef4444" }}>compatibilidad</span>
+              </div>
+
+              <a
+                href="/avatar-test"
+                style={{
+                  display: "block",
+                  padding: "10px",
+                  background: "linear-gradient(135deg,#dc2626,#ef4444)",
+                  borderRadius: "12px",
+                  color: "white",
+                  fontSize: "13px",
+                  fontWeight: 700,
+                  textDecoration: "none",
+                  boxShadow: "0 4px 14px rgba(220,38,38,0.3)",
+                }}
+              >
+                🎨 Personalizar avatar →
+              </a>
+            </div>
+          </motion.div>
+        );
+      })()}
+
+      </div>{/* fin flex row */}
+>>>>>>> Stashed changes
     </div>
   );
 }

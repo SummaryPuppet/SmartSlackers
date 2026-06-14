@@ -5,10 +5,12 @@ import { motion } from "framer-motion";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
 import AvatarSVG from "./AvatarSVG";
+import DinosaurSVG from "./DinosaurSVG";
 import type { AvatarConfig, Career } from "@/types/avatar";
 import { SKIN_TONES, HAIR_COLORS, EYE_COLORS, CAREER_COSMETICS } from "@/lib/careerCosmetics";
 import { auth } from "@/src/firebase/config";
 import { saveAvatar, loadAvatar } from "@/src/services/avatarService";
+import { markTutorialStep } from "@/src/services/tutorialService";
 import { useAuthState } from "react-firebase-hooks/auth";
 
 const DEFAULT_CONFIG: AvatarConfig = {
@@ -19,6 +21,7 @@ const DEFAULT_CONFIG: AvatarConfig = {
   outfitBase: "casual",
   background: "sky",
   unlockedCareers: [],
+  avatarType: "dino",
 };
 
 interface AvatarCustomizerProps {
@@ -111,6 +114,8 @@ export default function AvatarCustomizer({
       await saveAvatar(user.uid, config);
       setSaved(true);
       onSaved?.();
+      localStorage.setItem("vocatio_step_avatar", "1");
+      markTutorialStep(user.uid, "avatar");
       setTimeout(() => setSaved(false), 3000);
     } finally {
       setSaving(false);
@@ -125,12 +130,41 @@ export default function AvatarCustomizer({
       {/* Avatar preview */}
       <div className="flex flex-col items-center gap-4">
         <h3 className="text-lg font-bold">Tu Avatar</h3>
+
+        {/* Selector tipo de avatar */}
+        <div className="flex gap-2 rounded-xl border border-border bg-slate-50 p-1">
+          {([
+            { v: "person" as const, icon: "🧑", label: "Persona" },
+            { v: "dino"   as const, icon: "🦕", label: "Dinosaurio" },
+          ] as const).map(({ v, icon, label }) => {
+            const active = (config.avatarType ?? "person") === v;
+            return (
+              <motion.button
+                key={v}
+                type="button"
+                whileTap={{ scale: 0.95 }}
+                onClick={() => update("avatarType", v)}
+                className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition-all ${
+                  active
+                    ? "bg-white shadow text-slate-900"
+                    : "text-slate-500 hover:text-slate-700"
+                }`}
+              >
+                <span>{icon}</span> {label}
+              </motion.button>
+            );
+          })}
+        </div>
+
         <motion.div
           className="rounded-2xl overflow-hidden border border-border shadow-inner"
           whileHover={{ scale: 1.02 }}
           transition={{ type: "spring", stiffness: 200 }}
         >
-          <AvatarSVG config={config} size={240} />
+          {(config.avatarType ?? "person") === "dino"
+            ? <DinosaurSVG career={config.careerCosmetic?.career ?? null} size={240} />
+            : <AvatarSVG config={config} size={240} />
+          }
         </motion.div>
 
         <div className="grid grid-cols-1 gap-4 w-full">
@@ -209,7 +243,17 @@ export default function AvatarCustomizer({
       {/* Panel de personalización */}
       <Card className="w-full max-w-md">
         <CardContent className="pt-6">
+          {(config.avatarType ?? "person") === "dino" && (
+            <div className="rounded-xl bg-green-50 border border-green-100 px-4 py-3 mb-4 text-center">
+              <p className="text-xs font-semibold text-green-700 mb-1">🦕 Modo Dinosaurio</p>
+              <p className="text-xs text-green-600 leading-relaxed">
+                Tu Dino cambia de traje automáticamente según tu carrera vocacional.
+                Completa el test para desbloquear nuevos trajes.
+              </p>
+            </div>
+          )}
           <Tabs defaultValue="skin" className="w-full">
+            {(config.avatarType ?? "person") === "person" && (
             <TabsList className="grid grid-cols-3 gap-4 mb-4 justify-items-center">
               <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
                 <TabsTrigger value="skin">Piel</TabsTrigger>
@@ -221,8 +265,10 @@ export default function AvatarCustomizer({
                 <TabsTrigger value="style">Estilo</TabsTrigger>
               </motion.div>
             </TabsList>
+            )}
 
-            {/* Piel */}
+            {/* Tabs de personalización (solo modo persona) */}
+            {(config.avatarType ?? "person") === "person" && (<>
             <TabsContent value="skin" className="space-y-4">
               <div>
                 <p className="text-xs text-muted-foreground uppercase tracking-wider mb-2">Tono de piel</p>
@@ -260,7 +306,6 @@ export default function AvatarCustomizer({
               </div>
             </TabsContent>
 
-            {/* Cabello */}
             <TabsContent value="hair" className="space-y-4">
               <div>
                 <p className="text-xs text-muted-foreground uppercase tracking-wider mb-2">Estilo</p>
@@ -297,7 +342,6 @@ export default function AvatarCustomizer({
               </div>
             </TabsContent>
 
-            {/* Estilo */}
             <TabsContent value="style" className="space-y-4">
               <div>
                 <p className="text-xs text-muted-foreground uppercase tracking-wider mb-2">Ropa</p>
@@ -360,6 +404,7 @@ export default function AvatarCustomizer({
                 </div>
               )}
             </TabsContent>
+            </>)}
           </Tabs>
         </CardContent>
       </Card>

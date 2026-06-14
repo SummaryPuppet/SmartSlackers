@@ -1,6 +1,13 @@
 "use client";
 import { useState, useEffect } from "react";
+<<<<<<< Updated upstream
 import { useTranslation } from "@/lib/i18n";
+=======
+import { onAuthStateChanged } from "firebase/auth";
+import { auth } from "@/src/firebase/config";
+import { loadAvatar } from "@/src/services/avatarService";
+import type { AvatarConfig } from "@/types/avatar";
+>>>>>>> Stashed changes
 import { useTestLogic, TEST_SESSION_KEY } from "../components/test/useTestLogic";
 import TestIntro from "../components/test/TestIntro";
 import QuestionCard from "../components/test/QuestionCard";
@@ -13,6 +20,7 @@ export default function TestPage() {
   const { t } = useTranslation();
   const logic = useTestLogic();
   const [savedSession, setSavedSession] = useState<SavedSession | null>(null);
+  const [avatarConfig, setAvatarConfig] = useState<AvatarConfig | null>(null);
 
   // Detecta sesión en progreso al cargar la página
   useEffect(() => {
@@ -24,6 +32,17 @@ export default function TestPage() {
         setSavedSession(data);
       }
     } catch { /* ignore */ }
+  }, []);
+
+  // Carga el avatar del usuario para mostrarlo en el banner "en progreso"
+  useEffect(() => {
+    const unsub = onAuthStateChanged(auth, (user) => {
+      if (!user) return;
+      loadAvatar(user.uid)
+        .then((saved) => { if (saved) setAvatarConfig(saved.config); })
+        .catch(() => {});
+    });
+    return () => unsub();
   }, []);
 
   const handleResume = () => {
@@ -44,23 +63,29 @@ export default function TestPage() {
     }}>
       <Navbar />
       <div style={{ display: "flex", alignItems: "center", justifyContent: "center", padding: "1rem", minHeight: "calc(100vh - 57px)" }}>
-      {logic.phase === "intro" && (
-        <TestIntro onStart={logic.startTest} />
-      )}
-      {(logic.phase === "question" || logic.phase === "feedback") && (
-        <QuestionCard
-          question={logic.question}
-          current={logic.current}
-          total={logic.total}
-          timeLeft={logic.timeLeft}
-          selected={logic.selected}
-          score={logic.score}
-          onAnswer={logic.handleAnswer}
-        />
-      )}
-      {logic.phase === "result" && (
-        <ResultScreen result={logic.getResult()} score={logic.score} answers={logic.answers} />
-      )}
+        {logic.phase === "intro" && (
+          <TestIntro
+            onStart={handleStart}
+            hasSession={!!savedSession}
+            sessionProgress={savedSession ? { current: savedSession.current, total: 10 } : undefined}
+            onResume={handleResume}
+            avatarConfig={avatarConfig}
+          />
+        )}
+        {(logic.phase === "question" || logic.phase === "feedback") && (
+          <QuestionCard
+            question={logic.question}
+            current={logic.current}
+            total={logic.total}
+            timeLeft={logic.timeLeft}
+            selected={logic.selected}
+            score={logic.score}
+            onAnswer={logic.handleAnswer}
+          />
+        )}
+        {logic.phase === "result" && (
+          <ResultScreen result={logic.getResult()} score={logic.score} answers={logic.answers} />
+        )}
       </div>
     </main>
   );

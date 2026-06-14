@@ -43,6 +43,7 @@ export interface AvatarConfig {
   background: Background;
   careerCosmetic?: CareerCosmetic;
   unlockedCareers?: Career[];
+  avatarType?: "person" | "dino";
 }
 
 export interface SavedAvatar {

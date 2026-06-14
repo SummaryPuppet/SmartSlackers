@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { questions, careerResults } from "@/lib/questions";
+import type { Career } from "@/types/avatar";
 
 export const TEST_SESSION_KEY = "vocatio_test_session";
 
@@ -100,7 +101,7 @@ export function useTestLogic() {
     const valid = answers.filter((a) => a !== "none");
 
     if (valid.length < 3) {
-      return { insufficient: true, answered: valid.length, careerKey: "" };
+      return { insufficient: true, answered: valid.length, careerKey: "" as Career };
     }
 
     const count: Record<string, number> = {};
@@ -108,7 +109,7 @@ export function useTestLogic() {
       count[career] = (count[career] || 0) + 1;
     });
     const winner = Object.entries(count).sort((a, b) => b[1] - a[1])[0][0];
-    return { ...careerResults[winner], careerKey: winner, insufficient: false };
+    return { ...careerResults[winner], careerKey: winner as Career, insufficient: false };
   };
 
   return {
