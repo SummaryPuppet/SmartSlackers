@@ -4,17 +4,10 @@ import React, { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { useAuthState } from "react-firebase-hooks/auth";
-<<<<<<< Updated upstream
 import { auth } from "@/src/firebase/config";
 import AvatarSVG from "@/app/components/avatar/AvatarSVG";
 import AvatarCustomizer from "@/app/components/avatar/AvatarCustomizer";
 import { AvatarConfig, Career, CareerCosmetic } from "@/types/avatar";
-=======
-import { auth } from "@/lib/firebase"; // adjust to your firebase init path
-import AvatarSVG from "@/components/avatar/AvatarSVG";
-import AvatarCustomizer from "@/components/avatar/AvatarCustomizer";
-import type { AvatarConfig, Career } from "@/types/avatar";
->>>>>>> Stashed changes
 import { CAREER_COSMETICS } from "@/lib/careerCosmetics";
 import { saveAvatar, loadAvatar } from "@/src/services/avatarService";
 import { Button } from "@/components/ui/button";

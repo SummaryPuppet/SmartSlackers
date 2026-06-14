@@ -4,13 +4,14 @@ import { useEffect, useState } from "react";
 import AvatarCustomizer from "@/app/components/avatar/AvatarCustomizer";
 import { onAuthStateChanged } from "firebase/auth";
 import { auth, db } from "@/src/firebase/config";
-import { doc, setDoc, serverTimestamp } from "firebase/firestore";
+import { doc, getDoc, setDoc, addDoc, collection, serverTimestamp } from "firebase/firestore";
 import { trackBadgeEvent, showBadgeNotification } from "@/src/services/badgeService";
+import type { Career } from "@/types/avatar";
 
 type Result = {
   title?: string; desc?: string;
   match?: number; color?: string; emoji?: string;
-  careerKey: Career;
+  careerKey: string;
   insufficient?: boolean;
   answered?: number;
 };
@@ -305,7 +306,7 @@ export default function ResultScreen({
           <p style={{ textAlign: "center", fontSize: "13px", color: "#5b5b5b", marginBottom: "1rem" }}>
             Personaliza tu avatar y guárdalo con tu cosmético de {result.title}
           </p>
-          <AvatarCustomizer careerResult={result.careerKey} />
+          <AvatarCustomizer careerResult={result.careerKey as Career} />
         </motion.div>
       )}
     </div>
