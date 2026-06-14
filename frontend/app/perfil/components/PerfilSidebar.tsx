@@ -9,6 +9,7 @@ const SECCIONES = [
   { id: "skills",    icon: "📊" },
   { id: "admision",  icon: "🎓" },
   { id: "logros",    icon: "🏆" },
+  { id: "historial", icon: "📈" },
 ] as const;
 
 export type SeccionId = (typeof SECCIONES)[number]["id"];
@@ -27,6 +28,7 @@ export default function PerfilSidebar({ active, onChange }: PerfilSidebarProps) 
     skills: t("perfil.seccionSkills"),
     admision: t("perfil.seccionAdmision"),
     logros: t("perfil.seccionLogros"),
+    historial: t("perfil.seccionHistorial"),
   };
 
   return (
