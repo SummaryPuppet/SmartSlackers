@@ -70,37 +70,19 @@ export default function LoginPage() {
       return;
     }
 
-<<<<<<< Updated upstream
     setIsLoading(true);
     try {
       const result = await register(email, password, name);
       document.cookie = `vocatio_session=${result.user.uid}; path=/; max-age=${7 * 24 * 60 * 60}; SameSite=Lax`;
       setSuccessMessage("Usuario registrado correctamente");
       setShowSuccess(true);
+      router.push("/avatar-setup");
     } catch (error: any) {
       setError(error.message);
     } finally {
       setIsLoading(false);
     }
   };
-=======
-      const result = await register(
-      email,
-      password,
-      name
-    );
-
-    document.cookie = `vocatio_session=${result.user.uid}; path=/; max-age=${7 * 24 * 60 * 60}; SameSite=Lax`;
-
-    alert("Usuario registrado correctamente");
-
-    router.push("/avatar-setup");
-
-  } catch (error: any) {
-    alert(error.message);
-  }
-};
->>>>>>> Stashed changes
 
   const handleLogin = async () => {
     setError("");
@@ -108,14 +90,10 @@ export default function LoginPage() {
     try {
       const result = await login(email, password);
       document.cookie = `vocatio_session=${result.user.uid}; path=/; max-age=${7 * 24 * 60 * 60}; SameSite=Lax`;
-<<<<<<< Updated upstream
+      const avatarExists = await hasAvatar(result.user.uid);
       setSuccessMessage("Inicio de sesión exitoso");
       setShowSuccess(true);
-=======
-      alert("Inicio de sesión exitoso");
-      const avatarExists = await hasAvatar(result.user.uid);
       router.push(avatarExists ? "/" : "/avatar-setup");
->>>>>>> Stashed changes
     } catch (error: any) {
       setError(error.message);
     } finally {
