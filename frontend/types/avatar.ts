@@ -42,6 +42,7 @@ export interface AvatarConfig {
   outfitBase: OutfitBase;
   background: Background;
   careerCosmetic?: CareerCosmetic;
+  unlockedCareers?: Career[];
 }
 
 export interface SavedAvatar {

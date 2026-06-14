@@ -1,4 +1,4 @@
-import { Career, CareerCosmetic } from "@/types/avatar";
+import type { Career, CareerCosmetic } from "@/types/avatar";
 
 export const CAREER_COSMETICS: Record<string, CareerCosmetic> = {
   software: {
@@ -181,3 +181,5 @@ export const EYE_COLORS: Record<string, { fill: string; label: string }> = {
   blue:   { fill: "#1565C0", label: "Azul" },
   gray:   { fill: "#607D8B", label: "Gris" },
 };
+export { Career };
+

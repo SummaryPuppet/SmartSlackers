@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { AvatarConfig } from "@/types/avatar";
+import type { AvatarConfig } from "@/types/avatar";
 import { SKIN_TONES, HAIR_COLORS, EYE_COLORS } from "@/lib/careerCosmetics";
 
 interface AvatarSVGProps {

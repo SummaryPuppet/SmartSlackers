@@ -2,7 +2,7 @@
 // src/firebase/config.ts exporta { auth, db }
 import { doc, setDoc, getDoc, serverTimestamp, Timestamp } from "firebase/firestore";
 import { db } from "@/src/firebase/config";
-import { AvatarConfig, Career, SavedAvatar } from "@/types/avatar";
+import type { AvatarConfig, Career, SavedAvatar } from "@/types/avatar";
 
 const COLLECTION = "avatars";
 
@@ -12,13 +12,17 @@ const COLLECTION = "avatars";
  */
 export async function saveAvatar(
   uid: string,
-  config: AvatarConfig,
-  career: Career | null
+  config: AvatarConfig
 ): Promise<void> {
   const ref = doc(db, COLLECTION, uid);
   await setDoc(
     ref,
-    { uid, config, career, updatedAt: serverTimestamp() },
+    {
+      uid,
+      config,
+      career: config.careerCosmetic?.career ?? null,
+      updatedAt: serverTimestamp(),
+    },
     { merge: true }
   );
 }
@@ -39,6 +43,12 @@ export async function loadAvatar(uid: string): Promise<SavedAvatar | null> {
     career: data.career as Career | null,
     updatedAt: (data.updatedAt as Timestamp)?.toMillis() ?? Date.now(),
   };
+}
+
+export async function hasAvatar(uid: string): Promise<boolean> {
+  const ref = doc(db, COLLECTION, uid);
+  const snap = await getDoc(ref);
+  return snap.exists();
 }
 
 /**
@@ -63,5 +73,5 @@ export async function applyCareerCosmetic(
     background: cosmetic.background,
     careerCosmetic: cosmetic,
   };
-  await saveAvatar(uid, updatedConfig, career);
+  await saveAvatar(uid, updatedConfig);
 }
