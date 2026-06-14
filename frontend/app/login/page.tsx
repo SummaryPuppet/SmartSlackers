@@ -90,6 +90,9 @@ export default function LoginPage() {
     try {
       const result = await login(email, password);
       document.cookie = `vocatio_session=${result.user.uid}; path=/; max-age=${7 * 24 * 60 * 60}; SameSite=Lax`;
+      const avatarExists = await hasAvatar(result.user.uid);
+      setSuccessMessage("Inicio de sesión exitoso");
+      setShowSuccess(true);
       setSuccessMessage("Inicio de sesión exitoso");
       setShowSuccess(true);
       const avatarExists = await hasAvatar(result.user.uid);

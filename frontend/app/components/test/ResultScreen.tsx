@@ -1,6 +1,14 @@
 "use client";
 import AvatarCustomizer from "@/app/components/avatar/AvatarCustomizer";
 import { auth, db } from "@/src/firebase/config";
+import { doc, getDoc, setDoc, addDoc, collection, serverTimestamp } from "firebase/firestore";
+import { trackBadgeEvent, showBadgeNotification } from "@/src/services/badgeService";
+import type { Career } from "@/types/avatar";
+
+type Result = {
+  title?: string; desc?: string;
+  match?: number; color?: string; emoji?: string;
+  careerKey: string;
 import {
   showBadgeNotification,
   trackBadgeEvent,
@@ -462,7 +470,7 @@ export default function ResultScreen({
           >
             Personaliza tu avatar y guárdalo con tu cosmético de {result.title}
           </p>
-          <AvatarCustomizer careerResult={result.careerKey} />
+          <AvatarCustomizer careerResult={result.careerKey as Career} />
         </motion.div>
       )}
     </div>
